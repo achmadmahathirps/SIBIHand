@@ -55,7 +55,7 @@ def main():
         image.flags.writeable = False
         results = hands.process(image)
 
-        # FPS measurement #######################################################
+        # FPS measurement & Draw ################################################
         c_time = time.time()
         fps = 1 / (c_time - p_time)
         p_time = c_time
@@ -63,6 +63,14 @@ def main():
         cv.putText(debug_image, "FPS : " + str(int(fps)), (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.73, (0, 0, 0), 4,
                    cv.LINE_AA)
         cv.putText(debug_image, "FPS : " + str(int(fps)), (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.73, (255, 255, 255), 2,
+                   cv.LINE_AA)
+
+        # Name and NPM ##########################################################
+        cv.putText(debug_image, "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022", (323, 470), cv.FONT_HERSHEY_SIMPLEX, 0.3,
+                   (0, 0, 0), 2,
+                   cv.LINE_AA)
+        cv.putText(debug_image, "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022", (323, 470), cv.FONT_HERSHEY_SIMPLEX, 0.3,
+                   (255, 255, 255), 1,
                    cv.LINE_AA)
 
         # If the hand is detected: ##############################################
