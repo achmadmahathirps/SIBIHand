@@ -92,7 +92,7 @@ def main():
                 # Draw landmarks
                 debug_image = draw_landmarks(debug_image, landmark_list)
 
-                # Export trained keypoints in model
+                # Export trained keypoints in model #############################
                 try:
                     hand = pre_processed_landmark_list
 
