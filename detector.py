@@ -80,7 +80,6 @@ def main():
                 debug_image = draw_landmarks(debug_image, landmark_list)
 
                 # Export trained keypoints in model
-                # TODO: Create detections
                 try:
                     hand = pre_processed_landmark_list
 
@@ -121,11 +120,13 @@ def main():
 
                 # Draw bounding box
                 debug_image = draw_bounding_box(True, debug_image, bounding_box)
-        cv.putText(debug_image, "FPS : " + str(int(fps)), (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.73, (0, 0, 0), 4, cv.LINE_AA)
-        cv.putText(debug_image, "FPS : " + str(int(fps)), (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.73, (255, 255, 255), 2, cv.LINE_AA)
+        cv.putText(debug_image, "FPS : " + str(int(fps)), (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.73, (0, 0, 0), 4,
+                   cv.LINE_AA)
+        cv.putText(debug_image, "FPS : " + str(int(fps)), (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.73, (255, 255, 255), 2,
+                   cv.LINE_AA)
 
         # Output ################################################################
-        cv.imshow('Hand Gesture Recognition', debug_image)
+        cv.imshow('Hand (Fingerspelling) Sign Language Recognition', debug_image)
 
 
 def calc_bounding_box(image, landmarks):
