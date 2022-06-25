@@ -37,11 +37,6 @@ def main():
 
     # During capturing process ##################################################
     while True:
-        # FPS measurement #######################################################
-        c_time = time.time()
-        fps = 1 / (c_time - p_time)
-        p_time = c_time
-
         # Exit argument #########################################################
         if cv.waitKey(5) & 0xFF == 27:  # ESC key.
             break
@@ -59,6 +54,16 @@ def main():
         # Optimize detection process ############################################
         image.flags.writeable = False
         results = hands.process(image)
+
+        # FPS measurement #######################################################
+        c_time = time.time()
+        fps = 1 / (c_time - p_time)
+        p_time = c_time
+        # Draw FPS
+        cv.putText(debug_image, "FPS : " + str(int(fps)), (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.73, (0, 0, 0), 4,
+                   cv.LINE_AA)
+        cv.putText(debug_image, "FPS : " + str(int(fps)), (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.73, (255, 255, 255), 2,
+                   cv.LINE_AA)
 
         # If the hand is detected: ##############################################
         image.flags.writeable = True
@@ -120,10 +125,6 @@ def main():
 
                 # Draw bounding box
                 debug_image = draw_bounding_box(True, debug_image, bounding_box)
-        cv.putText(debug_image, "FPS : " + str(int(fps)), (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.73, (0, 0, 0), 4,
-                   cv.LINE_AA)
-        cv.putText(debug_image, "FPS : " + str(int(fps)), (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.73, (255, 255, 255), 2,
-                   cv.LINE_AA)
 
         # Output ################################################################
         cv.imshow('Hand (Fingerspelling) Sign Language Recognition', debug_image)
@@ -204,9 +205,9 @@ def draw_landmarks(image, landmark_point):
     if len(landmark_point) > 0:
         # Thumb
         cv.line(image, tuple(landmark_point[2]), tuple(landmark_point[3]),
-                (0, 0, 0), 6)
+                (0, 0, 0), 6, cv.LINE_AA)
         cv.line(image, tuple(landmark_point[2]), tuple(landmark_point[3]),
-                (255, 255, 255), 2)
+                (255, 255, 255), 2, cv.LINE_AA)
         cv.line(image, tuple(landmark_point[3]), tuple(landmark_point[4]),
                 (0, 0, 0), 6)
         cv.line(image, tuple(landmark_point[3]), tuple(landmark_point[4]),
