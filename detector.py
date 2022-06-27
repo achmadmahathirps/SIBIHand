@@ -10,19 +10,18 @@ import pandas as pd
 
 
 def main():
-    # Initials ##################################################################
-    webcam = 0
-    cap_width = 960
-    cap_height = 540
+    # Initialization ###################################################################################################
 
+    # Initialize camera settings
+    webcam = 0
+    cap = cv.VideoCapture(webcam)
+    cap.set(cv.CAP_PROP_FRAME_WIDTH, 960)
+    cap.set(cv.CAP_PROP_FRAME_HEIGHT, 540)
+
+    # Initialize FPS p_time
     p_time = 0
 
-    # Camera preparation ########################################################
-    cap = cv.VideoCapture(webcam)
-    cap.set(cv.CAP_PROP_FRAME_WIDTH, cap_width)
-    cap.set(cv.CAP_PROP_FRAME_HEIGHT, cap_height)
-
-    # Mediapipe hand model load #################################################
+    # Initialize Mediapipe's hand model parameters
     mp_hands = mp.solutions.hands
     hands = mp_hands.Hands(
         static_image_mode=False,
@@ -31,68 +30,68 @@ def main():
         min_tracking_confidence=0.25,
     )
 
-    # Open & import trained model ###############################################
+    # Open & import trained model ######################################################################################
     with open('model/trained_classifier.pkl', 'rb') as f:
         model = pickle.load(f)
 
-    # During capturing process ##################################################
+    # While in capturing process #######################################################################################
     while True:
-        # Exit argument #########################################################
-        if cv.waitKey(5) & 0xFF == 27:  # ESC key.
+
+        # Press "ESC" key to stop the application
+        if cv.waitKey(5) & 0xFF == 27:
             break
 
-        # If frame in capture is available: #####################################
+        # If frame/image in capture is available, then read it
         available, image = cap.read()
         if not available:
             break
-        image = cv.flip(image, 1)  # Mirror display
+
+        # Flip and copy the image for debugging
+        image = cv.flip(image, 1)
         debug_image = copy.deepcopy(image)
 
-        # Apply Mediapipe into detection ########################################
+        # Convert frame image from BGR to RGB for pre-optimization
         image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
 
-        # Optimize detection process ############################################
+        # Optimize detection process
         image.flags.writeable = False
         results = hands.process(image)
+        image.flags.writeable = True
 
-        # FPS measurement & Draw ################################################
+        # Calculate and visualize FPS
         c_time = time.time()
         fps = 1 / (c_time - p_time)
         p_time = c_time
-        # Draw FPS
-        cv.putText(debug_image, "FPS : " + str(int(fps)), (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.73, (0, 0, 0), 4,
-                   cv.LINE_AA)
-        cv.putText(debug_image, "FPS : " + str(int(fps)), (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.73, (255, 255, 255), 2,
-                   cv.LINE_AA)
 
-        # Name and NPM ##########################################################
-        cv.putText(debug_image, "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022", (323, 470), cv.FONT_HERSHEY_SIMPLEX, 0.3,
+        debug_image = draw_fps(debug_image, fps)
+
+        # Visualize info
+        cv.putText(debug_image, "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022", (323, 470),
+                   cv.FONT_HERSHEY_SIMPLEX, 0.3,
                    (0, 0, 0), 2,
                    cv.LINE_AA)
-        cv.putText(debug_image, "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022", (323, 470), cv.FONT_HERSHEY_SIMPLEX, 0.3,
+        cv.putText(debug_image, "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022", (323, 470),
+                   cv.FONT_HERSHEY_SIMPLEX, 0.3,
                    (255, 255, 255), 1,
                    cv.LINE_AA)
 
-        # If the hand is detected: ##############################################
-        image.flags.writeable = True
-
+        # If the hand is detected: #####################################################################################
         if results.multi_hand_landmarks is not None:
             for hand_landmarks, handedness in zip(results.multi_hand_landmarks,
                                                   results.multi_handedness):
-                # Bounding box calculation
+                # Calculate boundaries for bounding box
                 bounding_box = calc_bounding_box(debug_image, hand_landmarks)
 
-                # Landmark calculation
+                # Convert pre-normalized landmark keys into pixels numbering
                 landmark_list = calc_landmark_list(debug_image, hand_landmarks)
 
-                # Conversion into relative coordinates / normalized coordinates (wrist point)
+                # Convert into relative coordinates / normalize keys from wrist point
                 pre_processed_landmark_list = pre_process_landmark(landmark_list)
-                print(pre_processed_landmark_list)
 
-                # Draw landmarks
+                # Visualize complete hand landmarks
                 debug_image = draw_landmarks(debug_image, landmark_list)
 
-                # Export trained keypoints in model #############################
+                # Try predict hand gesture #############################################################################
                 try:
                     hand = pre_processed_landmark_list
 
@@ -128,16 +127,19 @@ def main():
                     cv.putText(debug_image, 'Prob : ' + sign_prob + "%", (bounding_box[0] + 5, bounding_box[3] + 17),
                                cv.FONT_HERSHEY_SIMPLEX,
                                0.6, (255, 255, 255), 1, cv.LINE_AA)
+
+                    # Draw bounding box
+                    debug_image = draw_bounding_box(True, debug_image, bounding_box)
+
+                # If not detected, then just pass ######################################################################
                 finally:
                     pass
 
-                # Draw bounding box
-                debug_image = draw_bounding_box(True, debug_image, bounding_box)
-
-        # Output ################################################################
+        # Output frame #################################################################################################
         cv.imshow('Hand (Fingerspelling) Sign Language Recognition', debug_image)
 
 
+# Functions ############################################################################################################
 def calc_bounding_box(image, landmarks):
     image_width, image_height = image.shape[1], image.shape[0]
 
@@ -172,7 +174,6 @@ def calc_landmark_list(image, landmarks):
     return landmark_point
 
 
-# Pre-processing calculated landmarks ########################################
 def pre_process_landmark(landmark_list):
     temp_landmark_list = copy.deepcopy(landmark_list)
 
@@ -198,6 +199,15 @@ def pre_process_landmark(landmark_list):
     temp_landmark_list = list(map(normalize_, temp_landmark_list))
 
     return temp_landmark_list
+
+
+def draw_fps(image, fps):
+    cv.putText(image, "FPS : " + str(int(fps)), (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.73, (0, 0, 0), 4,
+               cv.LINE_AA)
+    cv.putText(image, "FPS : " + str(int(fps)), (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.73, (255, 255, 255), 2,
+               cv.LINE_AA)
+
+    return image
 
 
 def draw_bounding_box(use_brect, image, brect):
@@ -311,8 +321,6 @@ def draw_landmarks(image, landmark_point):
         cv.line(image, tuple(landmark_point[19]), tuple(landmark_point[20]),
                 (255, 255, 255), 2)
 
-
-    # Key Points
     for index, landmark in enumerate(landmark_point):
         if index == 0:  # 手首1
             cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
