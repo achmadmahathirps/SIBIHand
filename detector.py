@@ -18,7 +18,7 @@ def main():
     cap.set(cv.CAP_PROP_FRAME_WIDTH, 960)
     cap.set(cv.CAP_PROP_FRAME_HEIGHT, 540)
 
-    # Initialize FPS p_time
+    # Initialize FPS p_time ("seconds passed" variable)
     p_time = 0
 
     # Initialize Mediapipe's hand model parameters
@@ -62,18 +62,10 @@ def main():
         c_time = time.time()
         fps = 1 / (c_time - p_time)
         p_time = c_time
-
         debug_image = draw_fps(debug_image, fps)
 
-        # Visualize info
-        cv.putText(debug_image, "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022", (323, 470),
-                   cv.FONT_HERSHEY_SIMPLEX, 0.3,
-                   (0, 0, 0), 2,
-                   cv.LINE_AA)
-        cv.putText(debug_image, "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022", (323, 470),
-                   cv.FONT_HERSHEY_SIMPLEX, 0.3,
-                   (255, 255, 255), 1,
-                   cv.LINE_AA)
+        # Visualize student info
+        debug_image = draw_student_info(debug_image)
 
         # If the hand is detected: #####################################################################################
         if results.multi_hand_landmarks is not None:
@@ -101,35 +93,16 @@ def main():
                     print(sign_language_class, sign_language_prob)
 
                     # Draw "Hand detected" if hand is on screen
-                    cv.putText(debug_image, "Hand detected", (10, 60), cv.FONT_HERSHEY_SIMPLEX, 0.73,
-                               (0, 0, 0), 4, cv.LINE_AA)
-                    cv.putText(debug_image, "Hand detected", (10, 60), cv.FONT_HERSHEY_SIMPLEX, 0.73,
-                               (255, 255, 255), 2, cv.LINE_AA)
+                    debug_image = draw_hand_detected(debug_image)
 
-                    # Implement class value in upper description box
-                    cv.rectangle(debug_image, (bounding_box[0], bounding_box[1]), (bounding_box[2],
-                                                                                   bounding_box[1] - 22), (0, 0, 0), -1)
-                    sign_alphabet = sign_language_class.split(' ')[0]
-                    cv.putText(debug_image, 'Class : ' + sign_alphabet, (bounding_box[0] + 5, bounding_box[1] - 4),
-                               cv.FONT_HERSHEY_SIMPLEX,
-                               0.6, (0, 0, 0), 2, cv.LINE_AA)
-                    cv.putText(debug_image, 'Class : ' + sign_alphabet, (bounding_box[0] + 5, bounding_box[1] - 4),
-                               cv.FONT_HERSHEY_SIMPLEX,
-                               0.6, (255, 255, 255), 1, cv.LINE_AA)
-
-                    # Implement probability value in lower description box
-                    sign_prob = str(round(sign_language_prob[np.argmax(sign_language_prob)], 2) * 100)
-                    cv.rectangle(debug_image, (bounding_box[2], bounding_box[3]), (bounding_box[0],
-                                                                                   bounding_box[3] + 22), (0, 0, 0), -1)
-                    cv.putText(debug_image, 'Prob : ' + sign_prob + "%", (bounding_box[0] + 5, bounding_box[3] + 17),
-                               cv.FONT_HERSHEY_SIMPLEX,
-                               0.6, (0, 0, 0), 2, cv.LINE_AA)
-                    cv.putText(debug_image, 'Prob : ' + sign_prob + "%", (bounding_box[0] + 5, bounding_box[3] + 17),
-                               cv.FONT_HERSHEY_SIMPLEX,
-                               0.6, (255, 255, 255), 1, cv.LINE_AA)
+                    # Draw class value in upper description box
+                    debug_image = draw_upper_bound_desc(debug_image, bounding_box, sign_language_class)
 
                     # Draw bounding box
                     debug_image = draw_bounding_box(True, debug_image, bounding_box)
+
+                    # Draw probability value in lower description box
+                    debug_image = draw_lower_bound_desc(debug_image, bounding_box, sign_language_prob)
 
                 # If not detected, then just pass ######################################################################
                 finally:
@@ -201,6 +174,19 @@ def pre_process_landmark(landmark_list):
     return temp_landmark_list
 
 
+def draw_student_info(image):
+    cv.putText(image, "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022", (323, 470),
+               cv.FONT_HERSHEY_SIMPLEX, 0.3,
+               (0, 0, 0), 2,
+               cv.LINE_AA)
+    cv.putText(image, "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022", (323, 470),
+               cv.FONT_HERSHEY_SIMPLEX, 0.3,
+               (255, 255, 255), 1,
+               cv.LINE_AA)
+
+    return image
+
+
 def draw_fps(image, fps):
     cv.putText(image, "FPS : " + str(int(fps)), (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.73, (0, 0, 0), 4,
                cv.LINE_AA)
@@ -210,11 +196,47 @@ def draw_fps(image, fps):
     return image
 
 
+def draw_hand_detected(image):
+    cv.putText(image, "Hand detected", (10, 60), cv.FONT_HERSHEY_SIMPLEX, 0.73,
+               (0, 0, 0), 4, cv.LINE_AA)
+    cv.putText(image, "Hand detected", (10, 60), cv.FONT_HERSHEY_SIMPLEX, 0.73,
+               (255, 255, 255), 2, cv.LINE_AA)
+
+    return image
+
+
+def draw_upper_bound_desc(image, brect, sign_lang_class):
+    cv.rectangle(image, (brect[0], brect[1]), (brect[2], brect[1] - 22), (0, 0, 0), -1)
+    sign_alphabet = sign_lang_class.split(' ')[0]
+    cv.putText(image, 'Class : ' + sign_alphabet, (brect[0] + 5, brect[1] - 4),
+               cv.FONT_HERSHEY_SIMPLEX,
+               0.6, (0, 0, 0), 2, cv.LINE_AA)
+    cv.putText(image, 'Class : ' + sign_alphabet, (brect[0] + 5, brect[1] - 4),
+               cv.FONT_HERSHEY_SIMPLEX,
+               0.6, (255, 255, 255), 1, cv.LINE_AA)
+
+    return image
+
+
 def draw_bounding_box(use_brect, image, brect):
     if use_brect:
         # Outer rectangle
         cv.rectangle(image, (brect[0], brect[1]), (brect[2], brect[3]),
                      (0, 0, 0), 1)
+
+    return image
+
+
+def draw_lower_bound_desc(image, brect, sign_lang_prob):
+    sign_prob = str(round(sign_lang_prob[np.argmax(sign_lang_prob)], 2) * 100)
+    cv.rectangle(image, (brect[2], brect[3]), (brect[0],
+                                                                   brect[3] + 22), (0, 0, 0), -1)
+    cv.putText(image, 'Prob : ' + sign_prob + "%", (brect[0] + 5, brect[3] + 17),
+               cv.FONT_HERSHEY_SIMPLEX,
+               0.6, (0, 0, 0), 2, cv.LINE_AA)
+    cv.putText(image, 'Prob : ' + sign_prob + "%", (brect[0] + 5, brect[3] + 17),
+               cv.FONT_HERSHEY_SIMPLEX,
+               0.6, (255, 255, 255), 1, cv.LINE_AA)
 
     return image
 
