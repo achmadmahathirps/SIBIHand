@@ -37,11 +37,11 @@ def main():
     # While in capturing process #######################################################################################
     while True:
 
-        # Press "ESC" key to stop the application
+        # Application stops when "ESC" key is pressed
         if cv.waitKey(5) & 0xFF == 27:
             break
 
-        # If frame/image in capture is available, then read it
+        # If frame/image in capture is not available left, then stop the application
         available, image = cap.read()
         if not available:
             break
@@ -83,7 +83,7 @@ def main():
                 # Visualize complete hand landmarks
                 debug_image = draw_landmarks(debug_image, landmark_list)
 
-                # Try predict hand gesture #############################################################################
+                # Try predict hand gesture and: ########################################################################
                 try:
                     hand = pre_processed_landmark_list
 
@@ -92,19 +92,15 @@ def main():
                     sign_language_prob = model.predict_proba(x)[0]
                     print(sign_language_class, sign_language_prob)
 
-                    # Draw "Hand detected" if hand is on screen
+                    # Draw "Hand detected" description
                     debug_image = draw_hand_detected(debug_image)
 
-                    # Draw class value in upper description box
+                    # Draw bounding box with descriptions
                     debug_image = draw_upper_bound_desc(debug_image, bounding_box, sign_language_class)
-
-                    # Draw bounding box
                     debug_image = draw_bounding_box(True, debug_image, bounding_box)
-
-                    # Draw probability value in lower description box
                     debug_image = draw_lower_bound_desc(debug_image, bounding_box, sign_language_prob)
 
-                # If not detected, then just pass ######################################################################
+                # Finally if not detected, then just pass ##############################################################
                 finally:
                     pass
 
@@ -229,8 +225,7 @@ def draw_bounding_box(use_brect, image, brect):
 
 def draw_lower_bound_desc(image, brect, sign_lang_prob):
     sign_prob = str(round(sign_lang_prob[np.argmax(sign_lang_prob)], 2) * 100)
-    cv.rectangle(image, (brect[2], brect[3]), (brect[0],
-                                                                   brect[3] + 22), (0, 0, 0), -1)
+    cv.rectangle(image, (brect[2], brect[3]), (brect[0], brect[3] + 22), (0, 0, 0), -1)
     cv.putText(image, 'Prob : ' + sign_prob + "%", (brect[0] + 5, brect[3] + 17),
                cv.FONT_HERSHEY_SIMPLEX,
                0.6, (0, 0, 0), 2, cv.LINE_AA)
