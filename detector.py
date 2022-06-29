@@ -13,7 +13,7 @@ def main():
     # Initialization ###################################################################################################
 
     # Initialize camera settings
-    webcam = 0
+    webcam = 1
     cap = cv.VideoCapture(webcam)
     cap.set(cv.CAP_PROP_FRAME_WIDTH, 960)
     cap.set(cv.CAP_PROP_FRAME_HEIGHT, 540)
