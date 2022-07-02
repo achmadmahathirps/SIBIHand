@@ -23,9 +23,6 @@ cap = cv.VideoCapture(webcam)
 cap.set(cv.CAP_PROP_FRAME_WIDTH, 960)
 cap.set(cv.CAP_PROP_FRAME_HEIGHT, 540)
 
-# Initialize FPS p_time ("seconds passed" variable)
-p_time = 0
-
 # Initialize Mediapipe's hand model parameters
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(
@@ -38,7 +35,7 @@ hands = mp_hands.Hands(
 
 # Main program #########################################################################################################
 def main():
-
+    p_time = 0
     # Open & import trained model
     with open('model/trained_classifier.pkl', 'rb') as f:
         model = pickle.load(f)
@@ -68,6 +65,7 @@ def main():
         image.flags.writeable = True
 
         # Calculate and visualize FPS
+
         c_time = time.time()
         fps = 1 / (c_time - p_time)
         p_time = c_time
