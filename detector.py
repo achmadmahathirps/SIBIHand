@@ -8,6 +8,8 @@ import mediapipe as mp
 import numpy as np
 import pandas as pd
 
+# Initialization #######################################################################################################
+
 # Initialize colors
 black = (0, 0, 0)
 grey_shade1 = (155, 168, 174)
@@ -15,33 +17,33 @@ grey_shade2 = (188, 202, 208)
 grey_shade3 = (227, 232, 234)
 white = (255, 255, 255)
 
+# Initialize camera settings
+webcam = 1
+cap = cv.VideoCapture(webcam)
+cap.set(cv.CAP_PROP_FRAME_WIDTH, 960)
+cap.set(cv.CAP_PROP_FRAME_HEIGHT, 540)
 
+# Initialize FPS p_time ("seconds passed" variable)
+p_time = 0
+
+# Initialize Mediapipe's hand model parameters
+mp_hands = mp.solutions.hands
+hands = mp_hands.Hands(
+    static_image_mode=False,
+    max_num_hands=1,
+    min_detection_confidence=0.75,
+    min_tracking_confidence=0.25,
+)
+
+
+# Main program #########################################################################################################
 def main():
-    # Initialization ###################################################################################################
 
-    # Initialize camera settings
-    webcam = 1
-    cap = cv.VideoCapture(webcam)
-    cap.set(cv.CAP_PROP_FRAME_WIDTH, 960)
-    cap.set(cv.CAP_PROP_FRAME_HEIGHT, 540)
-
-    # Initialize FPS p_time ("seconds passed" variable)
-    p_time = 0
-
-    # Initialize Mediapipe's hand model parameters
-    mp_hands = mp.solutions.hands
-    hands = mp_hands.Hands(
-        static_image_mode=False,
-        max_num_hands=1,
-        min_detection_confidence=0.75,
-        min_tracking_confidence=0.25,
-    )
-
-    # Open & import trained model ######################################################################################
+    # Open & import trained model
     with open('model/trained_classifier.pkl', 'rb') as f:
         model = pickle.load(f)
 
-    # While in capturing process #######################################################################################
+    # While in capturing process
     while True:
 
         # Application stops when "ESC" key is pressed
