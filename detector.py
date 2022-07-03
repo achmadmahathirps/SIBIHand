@@ -18,7 +18,7 @@ grey_shade3 = (227, 232, 234)
 white = (255, 255, 255)
 
 # Initialize camera settings
-webcam = 1
+webcam = 0
 cap = cv.VideoCapture(webcam)
 cap.set(cv.CAP_PROP_FRAME_WIDTH, 960)
 cap.set(cv.CAP_PROP_FRAME_HEIGHT, 540)
@@ -115,7 +115,7 @@ def main():
         cv.imshow('Hand (Fingerspelling) Sign Language Recognition', debug_image)
 
 
-# Functions ############################################################################################################
+# Calculation functions ################################################################################################
 def calc_bounding_box(image, landmarks):
     image_width, image_height = image.shape[1], image.shape[0]
 
@@ -177,6 +177,7 @@ def pre_process_landmark(landmark_list):
     return temp_landmark_list
 
 
+# Cosmetic functions ###################################################################################################
 def draw_student_info(image):
     cv.putText(image, "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022", (323, 470),
                cv.FONT_HERSHEY_SIMPLEX, 0.3,
@@ -346,87 +347,87 @@ def draw_landmarks(image, landmark_point):
                 white, 2)
 
     for index, landmark in enumerate(landmark_point):
-        if index == 0:  # 手首1
+        if index == 0:
             cv.circle(image, (landmark[0], landmark[1]), 5, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 1:  # 手首2
+        if index == 1:
             cv.circle(image, (landmark[0], landmark[1]), 5, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 2:  # 親指：付け根
+        if index == 2:
             cv.circle(image, (landmark[0], landmark[1]), 5, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 3:  # 親指：第1関節
+        if index == 3:
             cv.circle(image, (landmark[0], landmark[1]), 5, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 4:  # 親指：指先
+        if index == 4:
             cv.circle(image, (landmark[0], landmark[1]), 8, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 8, black, 1)
-        if index == 5:  # 人差指：付け根
+        if index == 5:
             cv.circle(image, (landmark[0], landmark[1]), 5, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 6:  # 人差指：第2関節
+        if index == 6:
             cv.circle(image, (landmark[0], landmark[1]), 5, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 7:  # 人差指：第1関節
+        if index == 7:
             cv.circle(image, (landmark[0], landmark[1]), 5, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 8:  # 人差指：指先
+        if index == 8:
             cv.circle(image, (landmark[0], landmark[1]), 8, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 8, black, 1)
-        if index == 9:  # 中指：付け根
+        if index == 9:
             cv.circle(image, (landmark[0], landmark[1]), 5, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 10:  # 中指：第2関節
+        if index == 10:
             cv.circle(image, (landmark[0], landmark[1]), 5, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 11:  # 中指：第1関節
+        if index == 11:
             cv.circle(image, (landmark[0], landmark[1]), 5, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 12:  # 中指：指先
+        if index == 12:
             cv.circle(image, (landmark[0], landmark[1]), 8, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 8, black, 1)
-        if index == 13:  # 薬指：付け根
+        if index == 13:
             cv.circle(image, (landmark[0], landmark[1]), 5, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 14:  # 薬指：第2関節
+        if index == 14:
             cv.circle(image, (landmark[0], landmark[1]), 5, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 15:  # 薬指：第1関節
+        if index == 15:
             cv.circle(image, (landmark[0], landmark[1]), 5, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 16:  # 薬指：指先
+        if index == 16:
             cv.circle(image, (landmark[0], landmark[1]), 8, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 8, black, 1)
-        if index == 17:  # 小指：付け根
+        if index == 17:
             cv.circle(image, (landmark[0], landmark[1]), 5, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 18:  # 小指：第2関節
+        if index == 18:
             cv.circle(image, (landmark[0], landmark[1]), 5, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 19:  # 小指：第1関節
+        if index == 19:
             cv.circle(image, (landmark[0], landmark[1]), 5, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 20:  # 小指：指先
+        if index == 20:
             cv.circle(image, (landmark[0], landmark[1]), 8, white,
                       -1)
             cv.circle(image, (landmark[0], landmark[1]), 8, black, 1)
