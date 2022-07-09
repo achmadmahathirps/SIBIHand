@@ -28,7 +28,7 @@ mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(
     static_image_mode=False,
     max_num_hands=1,
-    min_detection_confidence=0.75,
+    min_detection_confidence=0.8,
     min_tracking_confidence=0.25,
 )
 
@@ -65,7 +65,6 @@ def main():
         image.flags.writeable = True
 
         # Calculate and visualize FPS
-
         c_time = time.time()
         fps = 1 / (c_time - p_time)
         p_time = c_time
