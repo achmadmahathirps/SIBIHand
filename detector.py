@@ -36,6 +36,7 @@ hands = mp_hands.Hands(
 # Main program #########################################################################################################
 def main():
     p_time = 0
+
     # Open & import trained model
     with open('model/trained_classifier.pkl', 'rb') as f:
         model = pickle.load(f)
@@ -230,13 +231,13 @@ def draw_bounding_box(use_brect, image, brect):
     return image
 
 
-def draw_lower_bound_desc(image, brect, sign_lang_prob):
+def draw_lower_bound_desc(image, bbox, sign_lang_prob):
     sign_prob = str(round(sign_lang_prob[np.argmax(sign_lang_prob)], 2) * 100)
-    cv.rectangle(image, (brect[2], brect[3]), (brect[0], brect[3] + 22), (0, 0, 0), -1)
-    cv.putText(image, 'Prob : ' + sign_prob + "%", (brect[0] + 5, brect[3] + 17),
+    cv.rectangle(image, (bbox[2], bbox[3]), (bbox[0], bbox[3] + 22), (0, 0, 0), -1)
+    cv.putText(image, 'Prob : ' + sign_prob + "%", (bbox[0] + 5, bbox[3] + 17),
                cv.FONT_HERSHEY_SIMPLEX,
                0.6, black, 2, cv.LINE_AA)
-    cv.putText(image, 'Prob : ' + sign_prob + "%", (brect[0] + 5, brect[3] + 17),
+    cv.putText(image, 'Prob : ' + sign_prob + "%", (bbox[0] + 5, bbox[3] + 17),
                cv.FONT_HERSHEY_SIMPLEX,
                0.6, white, 1, cv.LINE_AA)
 
