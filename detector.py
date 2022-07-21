@@ -76,8 +76,7 @@ def main():
 
         # If the hand is detected: #####################################################################################
         if results.multi_hand_landmarks is not None:
-            for hand_landmarks, handedness in zip(results.multi_hand_landmarks,
-                                                  results.multi_handedness):
+            for hand_landmarks, handedness in zip(results.multi_hand_landmarks, results.multi_handedness):
                 # Calculate boundaries for bounding box
                 bounding_box = calc_bounding_box(debug_image, hand_landmarks)
 
