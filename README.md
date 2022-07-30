@@ -1,2 +1,2 @@
 # TA-187006041-AchmadMahathirP-HandSignLanguage
- A project-based thesis about an AI-powered system to translate a sign language from a hand (fingerspelling) recognition.
+ A project thesis about webcam-based sign language translator system by hand (fingerspelling) recognition powered by artificial intelligence.
