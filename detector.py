@@ -69,7 +69,7 @@ def main():
         results = hands.process(image)
         image.flags.writeable = True
 
-        # Calculate and visualize FPS
+        # Calculate and visualize FPS indicator
         current_time = time.time()
         fps = 1 / (current_time - previous_time)
         previous_time = current_time
