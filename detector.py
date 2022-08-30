@@ -23,6 +23,10 @@ cap = cv.VideoCapture(webcam)
 cap.set(cv.CAP_PROP_FRAME_WIDTH, 960)
 cap.set(cv.CAP_PROP_FRAME_HEIGHT, 540)
 
+# Initialize misc.
+init_prev_time = 0
+escape_key = 27
+
 # Initialize Mediapipe's hand model parameters
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(
@@ -35,7 +39,7 @@ hands = mp_hands.Hands(
 
 # Main program #########################################################################################################
 def main():
-    p_time = 0
+    previous_time = init_prev_time
 
     # Open & import trained model
     with open('model/trained_classifier.pkl', 'rb') as f:
@@ -45,7 +49,7 @@ def main():
     while True:
 
         # Application stops when "ESC" key is pressed
-        if cv.waitKey(5) & 0xFF == 27:
+        if cv.waitKey(5) & 0xFF == escape_key:
             break
 
         # If frame/image in capture is not available left, then stop the application
@@ -66,9 +70,9 @@ def main():
         image.flags.writeable = True
 
         # Calculate and visualize FPS
-        c_time = time.time()
-        fps = 1 / (c_time - p_time)
-        p_time = c_time
+        current_time = time.time()
+        fps = 1 / (current_time - previous_time)
+        previous_time = current_time
         debug_image = draw_fps(debug_image, fps)
 
         # Visualize student info
@@ -93,9 +97,9 @@ def main():
                 try:
                     hand = pre_processed_landmark_list
 
-                    x = pd.DataFrame([hand])
-                    sign_language_class = model.predict(x)[0]
-                    sign_language_prob = model.predict_proba(x)[0]
+                    data_frame = pd.DataFrame([hand])
+                    sign_language_class = model.predict(data_frame)[0]
+                    sign_language_prob = model.predict_proba(data_frame)[0]
                     print(sign_language_class, sign_language_prob)
 
                     # Draw "Hand detected" description
