@@ -182,22 +182,38 @@ def pre_process_landmark(landmark_list):
 
 # Cosmetic functions ###################################################################################################
 def draw_student_info(image):
-    cv.putText(image, "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022", (323, 470),
-               cv.FONT_HERSHEY_SIMPLEX, 0.3,
-               black, 2,
+
+    x_position = 323
+    y_position = 470
+    font_size = 0.3
+    black_thickness = 2
+    white_thickness = 1
+
+    cv.putText(image, "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022", (x_position, y_position),
+               cv.FONT_HERSHEY_SIMPLEX, font_size,
+               black, black_thickness,
                cv.LINE_AA)
-    cv.putText(image, "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022", (323, 470),
-               cv.FONT_HERSHEY_SIMPLEX, 0.3,
-               white, 1,
+    cv.putText(image, "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022", (x_position, y_position),
+               cv.FONT_HERSHEY_SIMPLEX, font_size,
+               white, white_thickness,
                cv.LINE_AA)
 
     return image
 
 
 def draw_fps(image, fps):
-    cv.putText(image, "FPS : " + str(int(fps)), (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.73, black, 4,
+
+    x_position = 10
+    y_position = 30
+    font_size = 0.73
+    black_thickness = 4
+    white_thickness = 2
+
+    cv.putText(image, "FPS : " + str(int(fps)), (x_position, y_position), cv.FONT_HERSHEY_SIMPLEX, font_size, black,
+               black_thickness,
                cv.LINE_AA)
-    cv.putText(image, "FPS : " + str(int(fps)), (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.73, white, 2,
+    cv.putText(image, "FPS : " + str(int(fps)), (x_position, y_position), cv.FONT_HERSHEY_SIMPLEX, font_size, white,
+               white_thickness,
                cv.LINE_AA)
 
     return image
