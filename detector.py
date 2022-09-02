@@ -220,10 +220,17 @@ def draw_fps(image, fps):
 
 
 def draw_hand_detected(image):
-    cv.putText(image, "Hand detected", (10, 60), cv.FONT_HERSHEY_SIMPLEX, 0.73,
-               black, 4, cv.LINE_AA)
-    cv.putText(image, "Hand detected", (10, 60), cv.FONT_HERSHEY_SIMPLEX, 0.73,
-               white, 2, cv.LINE_AA)
+
+    x_position = 10
+    y_position = 60
+    font_size = 0.73
+    black_thickness = 4
+    white_thickness = 2
+
+    cv.putText(image, "Hand detected", (x_position, y_position), cv.FONT_HERSHEY_SIMPLEX, font_size,
+               black, black_thickness, cv.LINE_AA)
+    cv.putText(image, "Hand detected", (x_position, y_position), cv.FONT_HERSHEY_SIMPLEX, font_size,
+               white, white_thickness, cv.LINE_AA)
 
     return image
 
