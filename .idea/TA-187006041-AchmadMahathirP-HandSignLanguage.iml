@@ -3,7 +3,6 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/venv" />
-      <excludeFolder url="file://$MODULE_DIR$/venv10" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.10 (TA-187006041-AchmadMahathirP-HandSignLanguage)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

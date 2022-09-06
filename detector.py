@@ -26,14 +26,22 @@ cap.set(cv.CAP_PROP_FRAME_HEIGHT, 540)
 # Initialize misc.
 init_prev_time = 0
 escape_key = 27
+press_key = 0xFF
 
 # Initialize Mediapipe's hand model parameters
 mp_hands = mp.solutions.hands
+static_image_mode = False
+max_num_hands = 1
+min_detection_confidence = 0.8
+min_tracking_confidence = 0.2
+model_complexity = 0
+
 hands = mp_hands.Hands(
-    static_image_mode=False,
-    max_num_hands=1,
-    min_detection_confidence=0.8,
-    min_tracking_confidence=0.25,
+    static_image_mode=static_image_mode,
+    max_num_hands=max_num_hands,
+    min_detection_confidence=min_detection_confidence,
+    min_tracking_confidence=min_tracking_confidence,
+    model_complexity=model_complexity
 )
 
 
@@ -49,7 +57,7 @@ def main():
     while True:
 
         # Application stops when "ESC" key is pressed
-        if cv.waitKey(5) & 0xFF == escape_key:
+        if cv.waitKey(5) & press_key == escape_key:
             break
 
         # If frame/image in capture is not available left, then stop the application
@@ -120,8 +128,8 @@ def main():
 
 # Calculation functions ################################################################################################
 def calc_bounding_box(image, landmarks):
-    image_width, image_height = image.shape[1], image.shape[0]
 
+    image_width, image_height = image.shape[1], image.shape[0]
     landmark_array = np.empty((0, 2), int)
 
     for _, landmark in enumerate(landmarks.landmark):
