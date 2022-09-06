@@ -50,7 +50,7 @@ def main():
     previous_time = init_prev_time
 
     # Open & import trained model
-    with open('model/trained_classifier.pkl', 'rb') as f:
+    with open('model/svm_trained_classifier.pkl', 'rb') as f:
         model = pickle.load(f)
 
     # While in capturing process
@@ -92,7 +92,7 @@ def main():
                 # Calculate boundaries for bounding box
                 bounding_box = calc_bounding_box(debug_image, hand_landmarks)
 
-                # Convert pre-normalized landmark keys into pixels numbering
+                # Convert pre-normalized landmark keys into absolute pixel value
                 landmark_list = calc_landmark_list(debug_image, hand_landmarks)
 
                 # Convert into relative coordinates / normalize keys from wrist point
@@ -109,6 +109,7 @@ def main():
                     sign_language_class = model.predict(data_frame)[0]
                     sign_language_prob = model.predict_proba(data_frame)[0]
                     print(sign_language_class, sign_language_prob)
+                    print(pre_processed_landmark_list)
 
                     # Draw "Hand detected" description
                     debug_image = draw_hand_detected(debug_image)
