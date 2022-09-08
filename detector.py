@@ -8,40 +8,39 @@ import mediapipe as mp
 import numpy as np
 import pandas as pd
 
-# Initialization #######################################################################################################
-
-# Initialize camera settings
-webcam = 0
-cap = cv.VideoCapture(webcam)
-cap.set(cv.CAP_PROP_FRAME_WIDTH, 960)
-cap.set(cv.CAP_PROP_FRAME_HEIGHT, 540)
-
-# Initialize misc.
-init_prev_time = 0
-escape_key = 27
-press_action = 0xFF
-read_pkl = 'rb'
-
-# Initialize Mediapipe's hand model parameters
-mp_hands = mp.solutions.hands
-static_image_mode = False
-max_num_hands = 1
-min_detection_confidence = 0.8
-min_tracking_confidence = 0.2
-model_complexity = 0
-
-hands = mp_hands.Hands(
-    static_image_mode=static_image_mode,
-    max_num_hands=max_num_hands,
-    min_detection_confidence=min_detection_confidence,
-    min_tracking_confidence=min_tracking_confidence,
-    model_complexity=model_complexity
-)
-
 
 # Main program #########################################################################################################
 def main():
-    previous_time = init_prev_time
+    # Initializations ##################################################################################################
+
+    # Initialize camera settings
+    webcam = 0
+    from_capture = cv.VideoCapture(webcam)
+    from_capture.set(cv.CAP_PROP_FRAME_WIDTH, 960)
+    from_capture.set(cv.CAP_PROP_FRAME_HEIGHT, 540)
+
+    # Initialize misc.
+    escape_key = 27
+    press_action = 0xFF
+    read_pkl = 'rb'
+    previous_time = 0
+
+    # Initialize Mediapipe's hand model parameters
+    mp_hands = mp.solutions.hands
+    static_image_mode = False
+    max_num_hands = 1
+    min_detection_confidence = 0.8
+    min_tracking_confidence = 0.2
+    model_complexity = 0
+
+    hands = mp_hands.Hands(
+        static_image_mode=static_image_mode,
+        max_num_hands=max_num_hands,
+        min_detection_confidence=min_detection_confidence,
+        min_tracking_confidence=min_tracking_confidence,
+        model_complexity=model_complexity
+    )
+    # ##################################################################################################################
 
     # Open & import trained model
     with open('model/svm_trained_classifier.pkl', read_pkl) as model_file:
@@ -55,7 +54,7 @@ def main():
             break
 
         # If frame/image in capture is not available left, then stop the application
-        available, image = cap.read()
+        available, image = from_capture.read()
         if not available:
             break
 
@@ -80,13 +79,13 @@ def main():
         # Visualize student info
         debug_image = draw_student_info(debug_image)
 
-        # If the hand is detected: #####################################################################################
+        # If the hand is detected:
         if results.multi_hand_landmarks is not None:
             for hand_landmarks, handedness in zip(results.multi_hand_landmarks, results.multi_handedness):
                 # Calculate boundaries for bounding box
                 bounding_box = calc_bounding_box(debug_image, hand_landmarks)
 
-                # Convert pre-normalized landmark keys into absolute pixel value
+                # Extract & convert pre-normalized landmark keys into absolute pixel value
                 landmark_list = calc_landmark_list(debug_image, hand_landmarks)
 
                 # Convert into relative coordinates / normalize keys from wrist point
@@ -95,7 +94,7 @@ def main():
                 # Visualize complete hand landmarks
                 debug_image = draw_landmarks(debug_image, landmark_list)
 
-                # Try predict hand gesture and: ########################################################################
+                # Try predict hand gesture and:
                 try:
                     hand = pre_processed_landmark_list
 
@@ -115,15 +114,18 @@ def main():
                     # print(sign_language_class, sign_language_prob)
                     print(pre_processed_landmark_list)
 
-                # Finally if not detected, then just pass ##############################################################
+                # Finally if not detected, then just pass
                 finally:
                     pass
 
-        # Output frame #################################################################################################
+        # Output frame
         cv.imshow('Hand (Fingerspelling) Sign Language Recognition', debug_image)
+# Main Program #########################################################################################################
 
 
 # Calculation functions ################################################################################################
+
+# Calculate bounding box size
 def calc_bounding_box(image, landmarks):
 
     image_width, image_height = image.shape[1], image.shape[0]
@@ -142,6 +144,7 @@ def calc_bounding_box(image, landmarks):
     return [x, y, x + w, y + h]
 
 
+# Extract & convert pre-normalized landmark keys into absolute pixel value
 def calc_landmark_list(image, landmarks):
     image_width, image_height = image.shape[1], image.shape[0]
 
@@ -158,6 +161,7 @@ def calc_landmark_list(image, landmarks):
     return landmark_point
 
 
+# Convert into relative coordinates / normalize keys from wrist point
 def pre_process_landmark(landmark_list):
     temp_landmark_list = copy.deepcopy(landmark_list)
 
@@ -170,7 +174,7 @@ def pre_process_landmark(landmark_list):
         temp_landmark_list[index][0] = temp_landmark_list[index][0] - base_x
         temp_landmark_list[index][1] = temp_landmark_list[index][1] - base_y
 
-    # Convert to a one-dimensional list
+    # Convert to a one-dimensional matrix list
     temp_landmark_list = list(
         itertools.chain.from_iterable(temp_landmark_list))
 
@@ -183,6 +187,7 @@ def pre_process_landmark(landmark_list):
     temp_landmark_list = list(map(normalize_, temp_landmark_list))
 
     return temp_landmark_list
+# Calculation functions ################################################################################################
 
 
 # Cosmetic functions ###################################################################################################
@@ -513,7 +518,9 @@ def draw_landmarks(image, landmark_point):
             cv.circle(image, (landmark[0], landmark[1]), 8, black, 1)
 
     return image
+# Cosmetics functions ##################################################################################################
 
 
+# Run main program
 if __name__ == '__main__':
     main()
