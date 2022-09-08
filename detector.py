@@ -10,13 +10,6 @@ import pandas as pd
 
 # Initialization #######################################################################################################
 
-# Initialize colors
-black = (0, 0, 0)
-grey_shade1 = (155, 168, 174)
-grey_shade2 = (188, 202, 208)
-grey_shade3 = (227, 232, 234)
-white = (255, 255, 255)
-
 # Initialize camera settings
 webcam = 0
 cap = cv.VideoCapture(webcam)
@@ -195,16 +188,19 @@ def pre_process_landmark(landmark_list):
 # Cosmetic functions ###################################################################################################
 def draw_student_info(image):
 
+    # Text & text position
     text = "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022"
-    x_position = 323
-    y_position = 470
+    x_position, y_position = 323, 470
+
+    # Font settings
     font_size = 0.3
-    black_thickness = 2
+    black, white = (0, 0, 0), (255, 255, 255)
+    outline_thickness = 2
     white_thickness = 1
 
     cv.putText(image, text, (x_position, y_position),
                cv.FONT_HERSHEY_SIMPLEX, font_size,
-               black, black_thickness,
+               black, outline_thickness,
                cv.LINE_AA)
     cv.putText(image, text, (x_position, y_position),
                cv.FONT_HERSHEY_SIMPLEX, font_size,
@@ -216,15 +212,18 @@ def draw_student_info(image):
 
 def draw_fps(image, fps):
 
+    # Text & text position
     text = " ".join(["FPS :", str(int(fps))])
-    x_position = 10
-    y_position = 30
-    font_size = 0.73
-    black_thickness = 4
-    white_thickness = 2
+    x_position, y_position = 10, 30
+
+    # Font settings
+    font_size = 0.75
+    black, white = (0, 0, 0), (255, 255, 255)
+    outline_thickness = 4
+    white_thickness = 1
 
     cv.putText(image, text, (x_position, y_position), cv.FONT_HERSHEY_SIMPLEX, font_size, black,
-               black_thickness,
+               outline_thickness,
                cv.LINE_AA)
     cv.putText(image, text, (x_position, y_position), cv.FONT_HERSHEY_SIMPLEX, font_size, white,
                white_thickness,
@@ -235,15 +234,18 @@ def draw_fps(image, fps):
 
 def draw_hand_detected(image):
 
+    # Text & text position
     text = "Hand detected"
-    x_position = 10
-    y_position = 60
-    font_size = 0.73
-    black_thickness = 4
-    white_thickness = 2
+    x_position, y_position = 10, 60
+
+    # Font settings
+    font_size = 0.75
+    black, white = (0, 0, 0), (255, 255, 255)
+    outline_thickness = 4
+    white_thickness = 1
 
     cv.putText(image, text, (x_position, y_position), cv.FONT_HERSHEY_SIMPLEX, font_size,
-               black, black_thickness, cv.LINE_AA)
+               black, outline_thickness, cv.LINE_AA)
     cv.putText(image, text, (x_position, y_position), cv.FONT_HERSHEY_SIMPLEX, font_size,
                white, white_thickness, cv.LINE_AA)
 
@@ -254,19 +256,21 @@ def draw_upper_bound_desc(image, brect, sign_lang_class):
 
     sign_alphabet = sign_lang_class.split(' ')[0]
 
+    # Text & tracking position
     text = " ".join(["Class :", sign_alphabet])
-    top = 0
-    left = 1
-    bottom = 2
+    top, left, bottom = 0, 1, 2
     offset = 22
+
+    # Font settings
     font_size = 0.6
-    black_thickness = 2
+    black, white = (0, 0, 0), (255, 255, 255)
+    outline_thickness = 2
     white_thickness = 1
 
     cv.rectangle(image, (brect[top], brect[left]), (brect[bottom], brect[left] - offset), black, -1)
     cv.putText(image, text, (brect[top] + 5, brect[left] - 4),
                cv.FONT_HERSHEY_SIMPLEX,
-               font_size, black, black_thickness, cv.LINE_AA)
+               font_size, black, outline_thickness, cv.LINE_AA)
     cv.putText(image, text, (brect[top] + 5, brect[left] - 4),
                cv.FONT_HERSHEY_SIMPLEX,
                font_size, white, white_thickness, cv.LINE_AA)
@@ -276,10 +280,8 @@ def draw_upper_bound_desc(image, brect, sign_lang_class):
 
 def draw_bounding_box(use_brect, image, brect):
 
-    top = 0
-    left = 1
-    bottom = 2
-    right = 3
+    top, left, bottom, right = 0, 1, 2, 3
+    black = (0, 0, 0)
 
     if use_brect:
         # Outer rectangle
@@ -293,18 +295,36 @@ def draw_lower_bound_desc(image, bbox, sign_lang_prob):
 
     sign_prob = str(round(sign_lang_prob[np.argmax(sign_lang_prob)], 2) * 100)
 
-    cv.rectangle(image, (bbox[2], bbox[3]), (bbox[0], bbox[3] + 22), (0, 0, 0), -1)
-    cv.putText(image, 'Prob : ' + sign_prob + "%", (bbox[0] + 5, bbox[3] + 17),
+    # Text & tracking position
+    text = " ".join(["Prob :", sign_prob, "%"])
+    top, bottom, right = 0, 2, 3
+    offset = 22
+
+    # Font settings
+    font_size = 0.6
+    black, white = (0, 0, 0), (255, 255, 255)
+    outline_thickness = 2
+    white_thickness = 1
+
+    cv.rectangle(image, (bbox[bottom], bbox[right]), (bbox[top], bbox[right] + offset), black, -1)
+    cv.putText(image, text, (bbox[0] + 5, bbox[3] + 17),
                cv.FONT_HERSHEY_SIMPLEX,
-               0.6, black, 2, cv.LINE_AA)
-    cv.putText(image, 'Prob : ' + sign_prob + "%", (bbox[0] + 5, bbox[3] + 17),
+               font_size, black, outline_thickness, cv.LINE_AA)
+    cv.putText(image, text, (bbox[0] + 5, bbox[3] + 17),
                cv.FONT_HERSHEY_SIMPLEX,
-               0.6, white, 1, cv.LINE_AA)
+               font_size, white, white_thickness, cv.LINE_AA)
 
     return image
 
 
 def draw_landmarks(image, landmark_point):
+
+    black = (0, 0, 0)
+    grey_shade1 = (155, 168, 174)
+    grey_shade2 = (188, 202, 208)
+    grey_shade3 = (227, 232, 234)
+    white = (255, 255, 255)
+
     if len(landmark_point) > 0:
         # Palm
         cv.line(image, tuple(landmark_point[0]), tuple(landmark_point[1]),
