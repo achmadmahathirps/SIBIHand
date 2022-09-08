@@ -1,15 +1,14 @@
-import copy
-import itertools
-import pickle
-import time
-
+from itertools import chain
+from pickle import load
+from time import time
+from copy import deepcopy
+from pandas import DataFrame
+from numpy import empty, array, append, argmax
 from cv2 import \
     VideoCapture, CAP_PROP_FRAME_WIDTH, CAP_PROP_FRAME_HEIGHT, waitKey, flip, cvtColor, COLOR_BGR2RGB, imshow, \
     boundingRect, putText, FONT_HERSHEY_SIMPLEX, LINE_AA, rectangle, line, circle
 
 import mediapipe as mp
-import numpy as np
-import pandas as pd
 
 
 # Main program #########################################################################################################
@@ -47,7 +46,7 @@ def main():
 
     # Open & import trained model
     with open('model/svm_trained_classifier.pkl', read_pkl) as model_file:
-        model = pickle.load(model_file)
+        model = load(model_file)
 
     # While in capturing process
     while True:
@@ -63,7 +62,7 @@ def main():
 
         # Flip and copy the image for debugging
         image = flip(image, 1)
-        debug_image = copy.deepcopy(image)
+        debug_image = deepcopy(image)
 
         # Convert frame image from BGR to RGB for pre-optimization
         image = cvtColor(image, COLOR_BGR2RGB)
@@ -74,7 +73,7 @@ def main():
         image.flags.writeable = True
 
         # Calculate and visualize FPS indicator
-        current_time = time.time()
+        current_time = time()
         fps = 1 / (current_time - previous_time)
         previous_time = current_time
         debug_image = draw_fps(debug_image, fps)
@@ -101,9 +100,9 @@ def main():
                 try:
                     hand = pre_processed_landmark_list
 
-                    data_frame = pd.DataFrame([hand])
-                    sign_language_class = model.predict(data_frame)[0]
-                    sign_language_prob = model.predict_proba(data_frame)[0]
+                    x = DataFrame([hand])
+                    sign_language_class = model.predict(x)[0]
+                    sign_language_prob = model.predict_proba(x)[0]
 
                     # Draw "Hand detected" description
                     debug_image = draw_hand_detected(debug_image)
@@ -115,7 +114,6 @@ def main():
 
                     # Output
                     # print(sign_language_class, sign_language_prob)
-                    print(pre_processed_landmark_list)
 
                 # Finally if not detected, then just pass
                 finally:
@@ -133,15 +131,15 @@ def main():
 # Calculate bounding box size
 def calc_bounding_box(image, landmarks):
     image_width, image_height = image.shape[1], image.shape[0]
-    landmark_array = np.empty((0, 2), int)
+    landmark_array = empty((0, 2), int)
 
     for _, landmark in enumerate(landmarks.landmark):
         landmark_x = min(int(landmark.x * image_width), image_width - 1)
         landmark_y = min(int(landmark.y * image_height), image_height - 1)
 
-        landmark_point = [np.array((landmark_x, landmark_y))]
+        landmark_point = [array((landmark_x, landmark_y))]
 
-        landmark_array = np.append(landmark_array, landmark_point, axis=0)
+        landmark_array = append(landmark_array, landmark_point, axis=0)
 
     x, y, w, h = boundingRect(landmark_array)
 
@@ -167,7 +165,7 @@ def calc_landmark_list(image, landmarks):
 
 # Convert into relative coordinates / normalize keys from wrist point
 def pre_process_landmark(landmark_list):
-    temp_landmark_list = copy.deepcopy(landmark_list)
+    temp_landmark_list = deepcopy(landmark_list)
 
     # Convert to relative coordinates
     base_x, base_y = 0, 0
@@ -180,7 +178,7 @@ def pre_process_landmark(landmark_list):
 
     # Convert to a one-dimensional matrix list
     temp_landmark_list = list(
-        itertools.chain.from_iterable(temp_landmark_list))
+        chain.from_iterable(temp_landmark_list))
 
     # Normalization
     max_value = max(list(map(abs, temp_landmark_list)))
@@ -298,7 +296,7 @@ def draw_bounding_box(use_brect, image, brect):
 
 
 def draw_lower_bound_desc(image, bbox, sign_lang_prob):
-    sign_prob = str(round(sign_lang_prob[np.argmax(sign_lang_prob)], 2) * 100)
+    sign_prob = str(round(sign_lang_prob[argmax(sign_lang_prob)], 2) * 100)
 
     # Text & tracking position
     text = " ".join(["Prob :", sign_prob, "%"])
@@ -517,8 +515,6 @@ def draw_landmarks(image, landmark_point):
             circle(image, (landmark[0], landmark[1]), 8, black, 1)
 
     return image
-
-
 # Cosmetics functions ##################################################################################################
 
 
