@@ -3,12 +3,13 @@ from pickle import load
 from time import time
 from copy import deepcopy
 from pandas import DataFrame
-from numpy import empty, array, append, argmax
+from numpy import \
+    empty, array, append, argmax
 from cv2 import \
     VideoCapture, CAP_PROP_FRAME_WIDTH, CAP_PROP_FRAME_HEIGHT, waitKey, flip, cvtColor, COLOR_BGR2RGB, imshow, \
     boundingRect, putText, FONT_HERSHEY_SIMPLEX, LINE_AA, rectangle, line, circle
 
-import mediapipe as mp
+from mediapipe import solutions
 
 
 # Main program #########################################################################################################
@@ -28,19 +29,13 @@ def main():
     previous_time = 0
 
     # Initialize Mediapipe's hand model parameters
-    mp_hands = mp.solutions.hands
-    static_image_mode = False
-    max_num_hands = 1
-    min_detection_confidence = 0.8
-    min_tracking_confidence = 0.2
-    model_complexity = 0
-
-    hands = mp_hands.Hands(
-        static_image_mode=static_image_mode,
-        max_num_hands=max_num_hands,
-        min_detection_confidence=min_detection_confidence,
-        min_tracking_confidence=min_tracking_confidence,
-        model_complexity=model_complexity
+    mediapipe_hands = solutions.hands
+    hands = mediapipe_hands.Hands(
+        static_image_mode=False,
+        max_num_hands=1,
+        min_detection_confidence=0.8,
+        min_tracking_confidence=0.2,
+        model_complexity=0
     )
     # ##################################################################################################################
 
@@ -67,9 +62,9 @@ def main():
         # Convert frame image from BGR to RGB for pre-optimization
         image = cvtColor(image, COLOR_BGR2RGB)
 
-        # Optimize detection process
+        # Optimize before detection process
         image.flags.writeable = False
-        results = hands.process(image)
+        detection_results = hands.process(image)  # Main hand detection
         image.flags.writeable = True
 
         # Calculate and visualize FPS indicator
@@ -82,25 +77,23 @@ def main():
         debug_image = draw_student_info(debug_image)
 
         # If the hand is detected:
-        if results.multi_hand_landmarks is not None:
-            for hand_landmarks, handedness in zip(results.multi_hand_landmarks, results.multi_handedness):
+        if detection_results.multi_hand_landmarks is not None:
+            for hand_landmarks, handedness in zip(detection_results.multi_hand_landmarks, detection_results.multi_handedness):
                 # Calculate boundaries for bounding box
                 bounding_box = calc_bounding_box(debug_image, hand_landmarks)
 
-                # Extract & convert pre-normalized landmark keys into absolute pixel value
+                # 1. Extract & convert pre-normalized landmark keys into absolute pixel value
                 landmark_list = calc_landmark_list(debug_image, hand_landmarks)
 
-                # Convert into relative coordinates / normalize keys from wrist point
+                # 2. Convert into relative coordinates / normalize keys from wrist point
                 pre_processed_landmark_list = pre_process_landmark(landmark_list)
 
-                # Visualize complete hand landmarks
+                # 3. Visualize complete hand landmarks
                 debug_image = draw_landmarks(debug_image, landmark_list)
 
                 # Try predict hand gesture and:
                 try:
-                    hand = pre_processed_landmark_list
-
-                    x = DataFrame([hand])
+                    x = DataFrame([pre_processed_landmark_list])
                     sign_language_class = model.predict(x)[0]
                     sign_language_prob = model.predict_proba(x)[0]
 
@@ -115,13 +108,12 @@ def main():
                     # Output
                     # print(sign_language_class, sign_language_prob)
 
-                # Finally if not detected, then just pass
+                # Finally if not detected, then just bypass to below code
                 finally:
                     pass
 
         # Output frame
         imshow('Hand (Fingerspelling) Sign Language Recognition', debug_image)
-
 
 # Main Program #########################################################################################################
 
@@ -129,11 +121,11 @@ def main():
 # Calculation functions ################################################################################################
 
 # Calculate bounding box size
-def calc_bounding_box(image, landmarks):
+def calc_bounding_box(image, hand_landmarks):
     image_width, image_height = image.shape[1], image.shape[0]
     landmark_array = empty((0, 2), int)
 
-    for _, landmark in enumerate(landmarks.landmark):
+    for _, landmark in enumerate(hand_landmarks.landmark):
         landmark_x = min(int(landmark.x * image_width), image_width - 1)
         landmark_y = min(int(landmark.y * image_height), image_height - 1)
 
@@ -147,24 +139,28 @@ def calc_bounding_box(image, landmarks):
 
 
 # Extract & convert pre-normalized landmark keys into absolute pixel value
-def calc_landmark_list(image, landmarks):
+def calc_landmark_list(image, hand_landmarks):
     image_width, image_height = image.shape[1], image.shape[0]
 
     landmark_point = []
 
     # Keypoint
-    for _, landmark in enumerate(landmarks.landmark):
+    for _, landmark in enumerate(hand_landmarks.landmark):
         landmark_x = min(int(landmark.x * image_width), image_width - 1)
         landmark_y = min(int(landmark.y * image_height), image_height - 1)
         # landmark_z = landmark.z
 
         landmark_point.append([landmark_x, landmark_y])
 
+        # Debug
+        # print("calc_landmark_list : " + str(landmark_point))
+
     return landmark_point
 
 
 # Convert into relative coordinates / normalize keys from wrist point
 def pre_process_landmark(landmark_list):
+
     temp_landmark_list = deepcopy(landmark_list)
 
     # Convert to relative coordinates
@@ -173,24 +169,25 @@ def pre_process_landmark(landmark_list):
         if index == 0:
             base_x, base_y = landmark_point[0], landmark_point[1]
 
+        # temp_landmark_list[index][0] = temp_landmark_list[index][0] - base_x
+        # temp_landmark_list[index][1] = temp_landmark_list[index][1] - base_y
+
         temp_landmark_list[index][0] = temp_landmark_list[index][0] - base_x
-        temp_landmark_list[index][1] = temp_landmark_list[index][1] - base_y
+        temp_landmark_list[index][1] = base_y - temp_landmark_list[index][1]
 
     # Convert to a one-dimensional matrix list
     temp_landmark_list = list(
         chain.from_iterable(temp_landmark_list))
 
-    # Normalization
+    # Find the max value among the detected landmarks
     max_value = max(list(map(abs, temp_landmark_list)))
 
+    # Normalize the relative coordinates
     def normalize_(n):
         return n / max_value
-
     temp_landmark_list = list(map(normalize_, temp_landmark_list))
 
     return temp_landmark_list
-
-
 # Calculation functions ################################################################################################
 
 
