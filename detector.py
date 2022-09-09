@@ -78,7 +78,8 @@ def main():
 
         # If the hand is detected:
         if detection_results.multi_hand_landmarks is not None:
-            for hand_landmarks, handedness in zip(detection_results.multi_hand_landmarks, detection_results.multi_handedness):
+            for hand_landmarks, handedness in zip(detection_results.multi_hand_landmarks,
+                                                  detection_results.multi_handedness):
                 # Calculate boundaries for bounding box
                 bounding_box = calc_bounding_box(debug_image, hand_landmarks)
 
@@ -103,10 +104,12 @@ def main():
                     # Draw bounding box with descriptions
                     debug_image = draw_upper_bound_desc(debug_image, bounding_box, sign_language_class)
                     debug_image = draw_bounding_box(True, debug_image, bounding_box)
-                    debug_image = draw_lower_bound_desc(debug_image, bounding_box, sign_language_prob)
+                    debug_image, prob_percentage = draw_lower_bound_desc(debug_image, bounding_box, sign_language_prob)
 
-                    # Output
-                    # print(sign_language_class, sign_language_prob)
+                    # Show output in terminal
+                    print(sign_language_class)
+                    print(sign_language_prob)
+                    print(prob_percentage)
 
                 # Finally if not detected, then just bypass to below code
                 finally:
@@ -140,51 +143,60 @@ def calc_bounding_box(image, hand_landmarks):
 
 # Extract & convert pre-normalized landmark keys into absolute pixel value
 def calc_landmark_list(image, hand_landmarks):
+
+    # Initialize image size & new landmark list
     image_width, image_height = image.shape[1], image.shape[0]
+    landmark_list = []
 
-    landmark_point = []
-
-    # Keypoint
+    # Extract & for each landmark keys from detected hand
     for _, landmark in enumerate(hand_landmarks.landmark):
+
+        # Convert pre-normalized landmark keys into absolute pixel value
         landmark_x = min(int(landmark.x * image_width), image_width - 1)
         landmark_y = min(int(landmark.y * image_height), image_height - 1)
         # landmark_z = landmark.z
 
-        landmark_point.append([landmark_x, landmark_y])
+        # Put the converted landmark keys inside the new landmark list
+        landmark_list.append([landmark_x, landmark_y])
 
-        # Debug
-        # print("calc_landmark_list : " + str(landmark_point))
-
-    return landmark_point
+    return landmark_list
 
 
-# Convert into relative coordinates / normalize keys from wrist point
+# Convert into relative coordinates & normalize keys from wrist point
 def pre_process_landmark(landmark_list):
 
+    # Receive landmark list from calc_landmark_list function
     temp_landmark_list = deepcopy(landmark_list)
 
-    # Convert to relative coordinates
+    # Initialize reference key
     base_x, base_y = 0, 0
+
+    # For each detected landmark keys in landmark list
     for index, landmark_point in enumerate(temp_landmark_list):
+        # If the first index of the landmark list (wrist) is detected,
+        # set the corresponding landmark keys to reference key
         if index == 0:
             base_x, base_y = landmark_point[0], landmark_point[1]
 
-        # temp_landmark_list[index][0] = temp_landmark_list[index][0] - base_x
-        # temp_landmark_list[index][1] = temp_landmark_list[index][1] - base_y
-
+        # for other landmarks, subtract with set reference key value
         temp_landmark_list[index][0] = temp_landmark_list[index][0] - base_x
         temp_landmark_list[index][1] = base_y - temp_landmark_list[index][1]
+
+        # temp_landmark_list[index][0] = temp_landmark_list[index][0] - base_x
+        # temp_landmark_list[index][1] = temp_landmark_list[index][1] - base_y
 
     # Convert to a one-dimensional matrix list
     temp_landmark_list = list(
         chain.from_iterable(temp_landmark_list))
 
-    # Find the max value among the detected landmarks
+    # Find the max value inside the one-dimensional landmark list
     max_value = max(list(map(abs, temp_landmark_list)))
 
-    # Normalize the relative coordinates
+    # Normalize the relative keys based from the max value
     def normalize_(n):
         return n / max_value
+
+    # Place & replace landmark list key with new normalized value
     temp_landmark_list = list(map(normalize_, temp_landmark_list))
 
     return temp_landmark_list
@@ -255,7 +267,7 @@ def draw_hand_detected(image):
     return image
 
 
-def draw_upper_bound_desc(image, brect, sign_lang_class):
+def draw_upper_bound_desc(image, bbox, sign_lang_class):
     sign_alphabet = sign_lang_class.split(' ')[0]
 
     # Text & tracking position
@@ -269,30 +281,32 @@ def draw_upper_bound_desc(image, brect, sign_lang_class):
     outline_thickness = 2
     white_thickness = 1
 
-    rectangle(image, (brect[top], brect[left]), (brect[bottom], brect[left] - offset), black, -1)
-    putText(image, text, (brect[top] + 5, brect[left] - 4),
+    rectangle(image, (bbox[top], bbox[left]), (bbox[bottom], bbox[left] - offset), black, -1)
+    putText(image, text, (bbox[top] + 5, bbox[left] - 4),
             FONT_HERSHEY_SIMPLEX,
             font_size, black, outline_thickness, LINE_AA)
-    putText(image, text, (brect[top] + 5, brect[left] - 4),
+    putText(image, text, (bbox[top] + 5, bbox[left] - 4),
             FONT_HERSHEY_SIMPLEX,
             font_size, white, white_thickness, LINE_AA)
 
     return image
 
 
-def draw_bounding_box(use_brect, image, brect):
+def draw_bounding_box(use_bbox, image, bbox):
     top, left, bottom, right = 0, 1, 2, 3
     black = (0, 0, 0)
 
-    if use_brect:
+    if use_bbox:
         # Outer rectangle
-        rectangle(image, (brect[top], brect[left]), (brect[bottom], brect[right]),
+        rectangle(image, (bbox[top], bbox[left]), (bbox[bottom], bbox[right]),
                   black, 1)
 
     return image
 
 
 def draw_lower_bound_desc(image, bbox, sign_lang_prob):
+
+    # Find max value in probability list & convert to percentage
     sign_prob = str(round(sign_lang_prob[argmax(sign_lang_prob)], 2) * 100)
 
     # Text & tracking position
@@ -314,7 +328,7 @@ def draw_lower_bound_desc(image, bbox, sign_lang_prob):
             FONT_HERSHEY_SIMPLEX,
             font_size, white, white_thickness, LINE_AA)
 
-    return image
+    return image, text
 
 
 def draw_landmarks(image, landmark_point):

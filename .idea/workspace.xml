@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8af4ac93-f61d-47ca-9e95-26fc4dee2239" name="Changes" comment="Optimize other libraries">
+    <list default="true" id="8af4ac93-f61d-47ca-9e95-26fc4dee2239" name="Changes" comment="Fix invalid (negative) output">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/detector.py" beforeDir="false" afterPath="$PROJECT_DIR$/detector.py" afterDir="false" />
     </list>
@@ -144,7 +144,14 @@
       <option name="project" value="LOCAL" />
       <updated>1662648834920</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="Fix invalid (negative) output">
+      <created>1662718818259</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1662718818259</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -168,6 +175,7 @@
     <MESSAGE value="Minor optimizations" />
     <MESSAGE value="Optimize CV library" />
     <MESSAGE value="Optimize other libraries" />
-    <option name="LAST_COMMIT_MESSAGE" value="Optimize other libraries" />
+    <MESSAGE value="Fix invalid (negative) output" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix invalid (negative) output" />
   </component>
 </project>
