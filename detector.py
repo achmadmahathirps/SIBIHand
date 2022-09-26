@@ -17,10 +17,22 @@ def main():
     # Initializations ##################################################################################################
 
     # Initialize camera settings
-    webcam = 0
+    webcam = 2  # <- (0 = built-in webcam, 2 = droidcam)
     from_capture = VideoCapture(webcam)
     from_capture.set(CAP_PROP_FRAME_WIDTH, 960)
     from_capture.set(CAP_PROP_FRAME_HEIGHT, 540)
+
+    # Initialize Mediapipe hand model parameters
+    mp_hands = solutions.hands
+    hands = mp_hands.Hands(
+        static_image_mode=False,
+        max_num_hands=1,
+        min_detection_confidence=0.8,
+        min_tracking_confidence=0.2,
+        model_complexity=0
+    )
+    drawing = solutions.drawing_utils
+    drawing_styles = solutions.drawing_styles
 
     # Initialize misc.
     escape_key = 27
@@ -28,15 +40,6 @@ def main():
     read_pkl = 'rb'
     previous_time = 0
 
-    # Initialize Mediapipe's hand model parameters
-    mediapipe_hands = solutions.hands
-    hands = mediapipe_hands.Hands(
-        static_image_mode=False,
-        max_num_hands=1,
-        min_detection_confidence=0.8,
-        min_tracking_confidence=0.2,
-        model_complexity=0
-    )
     # ##################################################################################################################
 
     # Open & import trained model
@@ -55,8 +58,9 @@ def main():
         if not available:
             break
 
-        # Flip and copy the image for debugging
-        image = flip(image, 1)
+        # Flip (if built-in webcam is detected) and copy the image for debugging
+        if webcam == 0:
+            image = flip(image, 1)
         debug_image = deepcopy(image)
 
         # Convert frame image from BGR to RGB for pre-optimization
@@ -64,7 +68,7 @@ def main():
 
         # Optimize before detection process
         image.flags.writeable = False
-        detection_results = hands.process(image)  # Main hand detection
+        detection_results = hands.process(image)  # <- (Main hand detection)
         image.flags.writeable = True
 
         # Calculate and visualize FPS indicator
@@ -92,14 +96,21 @@ def main():
                 # 3. Visualize complete hand landmarks
                 debug_image = draw_landmarks(debug_image, landmark_list)
 
-                # Try predict hand gesture and:
+                # Try to predict hand gesture and:
                 try:
                     x = DataFrame([pre_processed_landmark_list])
                     sign_language_class = model.predict(x)[0]
                     sign_language_prob = model.predict_proba(x)[0]
 
                     # Draw "Hand detected" description
-                    debug_image = draw_hand_detected(debug_image)
+                    # debug_image = draw_hand_detected(debug_image) # (Custom visualizer)
+
+                    drawing.draw_landmarks(  # (Mediapipe default visualizer)
+                        debug_image,
+                        hand_landmarks,
+                        mp_hands.HAND_CONNECTIONS,
+                        drawing_styles.get_default_hand_landmarks_style(),
+                        drawing_styles.get_default_hand_connections_style())
 
                     # Draw bounding box with descriptions
                     debug_image = draw_upper_bound_desc(debug_image, bounding_box, sign_language_class)
