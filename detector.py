@@ -17,7 +17,7 @@ def main():
     # Initializations ##################################################################################################
 
     # Initialize camera settings
-    webcam = 2  # <- (0 = built-in webcam, 2 = droidcam)
+    webcam = 0  # <- (0 = built-in webcam, 2 = droidcam)
     from_capture = VideoCapture(webcam)
     from_capture.set(CAP_PROP_FRAME_WIDTH, 960)
     from_capture.set(CAP_PROP_FRAME_HEIGHT, 540)
@@ -28,7 +28,7 @@ def main():
         static_image_mode=False,
         max_num_hands=1,
         min_detection_confidence=0.8,
-        min_tracking_confidence=0.2,
+        min_tracking_confidence=0.5,
         model_complexity=0
     )
     drawing = solutions.drawing_utils
