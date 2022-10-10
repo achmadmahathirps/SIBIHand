@@ -94,7 +94,13 @@ def main():
                 pre_processed_landmark_list = pre_process_landmark(landmark_list)
 
                 # 3. Visualize complete hand landmarks
-                debug_image = draw_landmarks(debug_image, landmark_list)
+                debug_image = draw_outlines(debug_image, landmark_list)
+                drawing.draw_landmarks(  # (Mediapipe default visualizer)
+                    debug_image,
+                    hand_landmarks,
+                    mp_hands.HAND_CONNECTIONS,
+                    drawing_styles.get_default_hand_landmarks_style(),
+                    drawing_styles.get_default_hand_connections_style())
 
                 # Try to predict hand gesture and:
                 try:
@@ -103,14 +109,7 @@ def main():
                     sign_language_prob = model.predict_proba(x)[0]
 
                     # Draw "Hand detected" description
-                    # debug_image = draw_hand_detected(debug_image) # (Custom visualizer)
-
-                    drawing.draw_landmarks(  # (Mediapipe default visualizer)
-                        debug_image,
-                        hand_landmarks,
-                        mp_hands.HAND_CONNECTIONS,
-                        drawing_styles.get_default_hand_landmarks_style(),
-                        drawing_styles.get_default_hand_connections_style())
+                    debug_image = draw_hand_detected(debug_image)
 
                     # Draw bounding box with descriptions
                     debug_image = draw_upper_bound_desc(debug_image, bounding_box, sign_language_class)
@@ -342,10 +341,8 @@ def draw_lower_bound_desc(image, bbox, sign_lang_prob):
     return image, text
 
 
-def draw_landmarks(image, landmark_point):
+def draw_outlines(image, landmark_point):
     black = (0, 0, 0)
-    grey_shade1 = (155, 168, 174)
-    grey_shade2 = (188, 202, 208)
     grey_shade3 = (227, 232, 234)
     white = (255, 255, 255)
 
@@ -353,187 +350,103 @@ def draw_landmarks(image, landmark_point):
         # Palm
         line(image, tuple(landmark_point[0]), tuple(landmark_point[1]),
              black, 6)
-        line(image, tuple(landmark_point[0]), tuple(landmark_point[1]),
-             grey_shade1, 2)
         line(image, tuple(landmark_point[1]), tuple(landmark_point[2]),
              black, 6)
-        line(image, tuple(landmark_point[1]), tuple(landmark_point[2]),
-             grey_shade2, 2)
         line(image, tuple(landmark_point[2]), tuple(landmark_point[5]),
              black, 6)
         line(image, tuple(landmark_point[2]), tuple(landmark_point[5]),
-             grey_shade1, 2)
+             grey_shade3, 3)
         line(image, tuple(landmark_point[5]), tuple(landmark_point[0]),
              black, 6)
-        line(image, tuple(landmark_point[5]), tuple(landmark_point[0]),
-             grey_shade1, 2)
         line(image, tuple(landmark_point[5]), tuple(landmark_point[9]),
              black, 6)
-        line(image, tuple(landmark_point[5]), tuple(landmark_point[9]),
-             grey_shade1, 2)
         line(image, tuple(landmark_point[9]), tuple(landmark_point[13]),
              black, 6)
-        line(image, tuple(landmark_point[9]), tuple(landmark_point[13]),
-             grey_shade1, 2)
         line(image, tuple(landmark_point[13]), tuple(landmark_point[17]),
              black, 6)
-        line(image, tuple(landmark_point[13]), tuple(landmark_point[17]),
-             grey_shade1, 2)
         line(image, tuple(landmark_point[17]), tuple(landmark_point[0]),
              black, 6)
-        line(image, tuple(landmark_point[17]), tuple(landmark_point[0]),
-             grey_shade1, 2)
 
         # Thumb
         line(image, tuple(landmark_point[2]), tuple(landmark_point[3]),
              black, 6)
-        line(image, tuple(landmark_point[2]), tuple(landmark_point[3]),
-             grey_shade3, 2)
         line(image, tuple(landmark_point[3]), tuple(landmark_point[4]),
              black, 6)
-        line(image, tuple(landmark_point[3]), tuple(landmark_point[4]),
-             white, 2)
 
         # Index finger
         line(image, tuple(landmark_point[5]), tuple(landmark_point[6]),
              black, 6)
-        line(image, tuple(landmark_point[5]), tuple(landmark_point[6]),
-             grey_shade2, 2),
         line(image, tuple(landmark_point[6]), tuple(landmark_point[7]),
              black, 6)
-        line(image, tuple(landmark_point[6]), tuple(landmark_point[7]),
-             grey_shade3, 2)
         line(image, tuple(landmark_point[7]), tuple(landmark_point[8]),
              black, 6)
-        line(image, tuple(landmark_point[7]), tuple(landmark_point[8]),
-             white, 2)
 
         # Middle finger
         line(image, tuple(landmark_point[9]), tuple(landmark_point[10]),
              black, 6)
-        line(image, tuple(landmark_point[9]), tuple(landmark_point[10]),
-             grey_shade2, 2)
         line(image, tuple(landmark_point[10]), tuple(landmark_point[11]),
              black, 6)
-        line(image, tuple(landmark_point[10]), tuple(landmark_point[11]),
-             grey_shade3, 2)
         line(image, tuple(landmark_point[11]), tuple(landmark_point[12]),
              black, 6)
-        line(image, tuple(landmark_point[11]), tuple(landmark_point[12]),
-             white, 2)
 
         # Ring finger
         line(image, tuple(landmark_point[13]), tuple(landmark_point[14]),
              black, 6)
-        line(image, tuple(landmark_point[13]), tuple(landmark_point[14]),
-             grey_shade2, 2)
         line(image, tuple(landmark_point[14]), tuple(landmark_point[15]),
              black, 6)
-        line(image, tuple(landmark_point[14]), tuple(landmark_point[15]),
-             grey_shade3, 2)
         line(image, tuple(landmark_point[15]), tuple(landmark_point[16]),
              black, 6)
-        line(image, tuple(landmark_point[15]), tuple(landmark_point[16]),
-             white, 2)
 
         # Little finger
         line(image, tuple(landmark_point[17]), tuple(landmark_point[18]),
              black, 6)
-        line(image, tuple(landmark_point[17]), tuple(landmark_point[18]),
-             grey_shade2, 2)
         line(image, tuple(landmark_point[18]), tuple(landmark_point[19]),
              black, 6)
-        line(image, tuple(landmark_point[18]), tuple(landmark_point[19]),
-             grey_shade3, 2)
         line(image, tuple(landmark_point[19]), tuple(landmark_point[20]),
              black, 6)
-        line(image, tuple(landmark_point[19]), tuple(landmark_point[20]),
-             white, 2)
 
     for index, landmark in enumerate(landmark_point):
         if index == 0:
-            circle(image, (landmark[0], landmark[1]), 5, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 5, black, 1)
         if index == 1:
-            circle(image, (landmark[0], landmark[1]), 5, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 5, black, 1)
         if index == 2:
-            circle(image, (landmark[0], landmark[1]), 5, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 5, black, 1)
         if index == 3:
-            circle(image, (landmark[0], landmark[1]), 5, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 5, black, 1)
         if index == 4:
-            circle(image, (landmark[0], landmark[1]), 8, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 8, black, 1)
         if index == 5:
-            circle(image, (landmark[0], landmark[1]), 5, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 5, black, 1)
         if index == 6:
-            circle(image, (landmark[0], landmark[1]), 5, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 5, black, 1)
         if index == 7:
-            circle(image, (landmark[0], landmark[1]), 5, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 5, black, 1)
         if index == 8:
-            circle(image, (landmark[0], landmark[1]), 8, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 8, black, 1)
         if index == 9:
-            circle(image, (landmark[0], landmark[1]), 5, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 5, black, 1)
         if index == 10:
-            circle(image, (landmark[0], landmark[1]), 5, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 5, black, 1)
         if index == 11:
-            circle(image, (landmark[0], landmark[1]), 5, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 5, black, 1)
         if index == 12:
-            circle(image, (landmark[0], landmark[1]), 8, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 8, black, 1)
         if index == 13:
-            circle(image, (landmark[0], landmark[1]), 5, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 5, black, 1)
         if index == 14:
-            circle(image, (landmark[0], landmark[1]), 5, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 5, black, 1)
         if index == 15:
-            circle(image, (landmark[0], landmark[1]), 5, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 5, black, 1)
         if index == 16:
-            circle(image, (landmark[0], landmark[1]), 8, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 8, black, 1)
         if index == 17:
-            circle(image, (landmark[0], landmark[1]), 5, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 5, black, 1)
         if index == 18:
-            circle(image, (landmark[0], landmark[1]), 5, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 5, black, 1)
         if index == 19:
-            circle(image, (landmark[0], landmark[1]), 5, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 5, black, 1)
         if index == 20:
-            circle(image, (landmark[0], landmark[1]), 8, white,
-                   -1)
             circle(image, (landmark[0], landmark[1]), 8, black, 1)
 
     return image
