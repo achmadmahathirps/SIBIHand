@@ -104,9 +104,9 @@ def main():
 
                 # Try to predict hand gesture and:
                 try:
-                    x = DataFrame([pre_processed_landmark_list])
-                    sign_language_class = model.predict(x)[0]
-                    sign_language_prob = model.predict_proba(x)[0]
+                    data_frame = DataFrame([pre_processed_landmark_list])
+                    sign_language_class = model.predict(data_frame)[0]
+                    sign_language_prob = model.predict_proba(data_frame)[0]
 
                     # Draw "Hand detected" description
                     debug_image = draw_hand_detected(debug_image)

@@ -1,11 +1,8 @@
 import copy
-
 import cv2 as cv
 import time
 import mediapipe as mp
 import numpy as np
-
-from collections import deque
 
 
 def main():
@@ -18,22 +15,19 @@ def main():
     c_time = 0
 
     # Camera preparation ########################################################
-    cap = cv.VideoCapture(webcam)
-    cap.set(cv.CAP_PROP_FRAME_WIDTH, cap_width)
-    cap.set(cv.CAP_PROP_FRAME_HEIGHT, cap_height)
+    from_capture = cv.VideoCapture(webcam)
+    from_capture.set(cv.CAP_PROP_FRAME_WIDTH, cap_width)
+    from_capture.set(cv.CAP_PROP_FRAME_HEIGHT, cap_height)
 
     # Mediapipe hand model load #################################################
     mp_hands = mp.solutions.hands
     hands = mp_hands.Hands(
         static_image_mode=False,
-        max_num_hands=2,
-        min_detection_confidence=0.7,
+        max_num_hands=1,
+        min_detection_confidence=0.8,
         min_tracking_confidence=0.5,
+        model_complexity=0,
     )
-
-    # Coordinate history ########################################################
-    history_length = 16
-    point_history = deque(maxlen=history_length)
 
     # During capturing process ##################################################
     while True:
@@ -47,7 +41,7 @@ def main():
             break
 
         # If frame in capture is available: #####################################
-        available, image = cap.read()
+        available, image = from_capture.read()
         if not available:
             break
         image = cv.flip(image, 1)  # Mirror display
@@ -114,11 +108,10 @@ def calc_landmark_list(image, landmarks):
     return landmark_point
 
 
-
-def draw_bounding_box(use_brect, image, brect):
-    if use_brect:
+def draw_bounding_box(use_bbox, image, bbox):
+    if use_bbox:
         # Outer rectangle
-        cv.rectangle(image, (brect[0], brect[1]), (brect[2], brect[3]),
+        cv.rectangle(image, (bbox[0], bbox[1]), (bbox[2], bbox[3]),
                      (0, 0, 0), 1)
 
     return image
