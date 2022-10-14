@@ -28,7 +28,7 @@ def main():
         static_image_mode=False,
         max_num_hands=1,
         min_detection_confidence=0.8,
-        min_tracking_confidence=0.5,
+        min_tracking_confidence=0.2,
         model_complexity=0
     )
     drawing = solutions.drawing_utils
@@ -50,7 +50,7 @@ def main():
     while True:
 
         # Application stops when "ESC" key is pressed
-        if waitKey(5) & press_action == escape_key:
+        if waitKey(3) & press_action == escape_key:
             break
 
         # If frame/image in capture is not available left, then stop the application
@@ -352,9 +352,9 @@ def draw_outlines(image, landmark_point):
              black, 6)
         line(image, tuple(landmark_point[1]), tuple(landmark_point[2]),
              black, 6)
-        line(image, tuple(landmark_point[2]), tuple(landmark_point[5]),
+        line(image, tuple(landmark_point[1]), tuple(landmark_point[5]),
              black, 6)
-        line(image, tuple(landmark_point[2]), tuple(landmark_point[5]),
+        line(image, tuple(landmark_point[1]), tuple(landmark_point[5]),
              grey_shade3, 3)
         line(image, tuple(landmark_point[5]), tuple(landmark_point[0]),
              black, 6)
