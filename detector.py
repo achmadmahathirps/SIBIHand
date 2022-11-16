@@ -17,7 +17,7 @@ def main():
     # Initializations ##################################################################################################
 
     # Initialize camera settings
-    webcam = 0  # <- (0 = built-in webcam, 2 = droidcam)
+    webcam = 2  # <- (0 = built-in webcam, 2 = droidcam)
     from_capture = VideoCapture(webcam)
     from_capture.set(CAP_PROP_FRAME_WIDTH, 960)
     from_capture.set(CAP_PROP_FRAME_HEIGHT, 540)
@@ -27,9 +27,9 @@ def main():
     hands = mp_hands.Hands(
         static_image_mode=False,
         max_num_hands=1,
-        min_detection_confidence=0.8,
-        min_tracking_confidence=0.2,
-        model_complexity=0
+        min_detection_confidence=0.5,
+        min_tracking_confidence=0.5,
+        model_complexity=1
     )
     drawing = solutions.drawing_utils
     drawing_styles = solutions.drawing_styles
@@ -43,7 +43,7 @@ def main():
     # ##################################################################################################################
 
     # Open & import trained model
-    with open('model/svm_trained_classifier.pkl', read_pkl) as model_file:
+    with open('model/svm_trained_classifier_v2.pkl', read_pkl) as model_file:
         model = load(model_file)
 
     # While in capturing process
@@ -59,8 +59,7 @@ def main():
             break
 
         # Flip (if built-in webcam is detected) and copy the image for debugging
-        if webcam == 0:
-            image = flip(image, 1)
+        image = flip(image, 1)
         debug_image = deepcopy(image)
 
         # Convert frame image from BGR to RGB for pre-optimization
@@ -344,7 +343,6 @@ def draw_lower_bound_desc(image, bbox, sign_lang_prob):
 def draw_outlines(image, landmark_point):
     black = (0, 0, 0)
     grey_shade3 = (227, 232, 234)
-    white = (255, 255, 255)
 
     if len(landmark_point) > 0:
         # Palm
