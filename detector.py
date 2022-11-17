@@ -11,6 +11,8 @@ from cv2 import \
 
 from mediapipe import solutions
 
+import keyboard
+
 
 # Main program #########################################################################################################
 def main():
@@ -35,8 +37,6 @@ def main():
     drawing_styles = solutions.drawing_styles
 
     # Initialize misc.
-    escape_key = 27
-    press_action = 0xFF
     read_pkl = 'rb'
     previous_time = 0
 
@@ -50,7 +50,7 @@ def main():
     while True:
 
         # Application stops when "ESC" key is pressed
-        if waitKey(3) & press_action == escape_key:
+        if waitKey(3) & keyboard.is_pressed('ESC'):
             print("Exited through ESC key.")
             break
 
