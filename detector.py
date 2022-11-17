@@ -2,6 +2,8 @@ from itertools import chain
 from pickle import load
 from time import time
 from copy import deepcopy
+
+from google.protobuf.json_format import MessageToDict
 from pandas import DataFrame
 from numpy import \
     empty, array, append, argmax
@@ -19,7 +21,7 @@ def main():
     # Initializations ##################################################################################################
 
     # Initialize camera settings
-    webcam = 0  # <- (0 = built-in webcam, 2 = droidcam)
+    webcam = 1  # <- (0 = built-in webcam, 1 = external webcam)
     from_capture = VideoCapture(webcam)
     from_capture.set(CAP_PROP_FRAME_WIDTH, 960)
     from_capture.set(CAP_PROP_FRAME_HEIGHT, 540)
@@ -31,7 +33,7 @@ def main():
         max_num_hands=1,
         min_detection_confidence=0.5,
         min_tracking_confidence=0.5,
-        model_complexity=1
+        model_complexity=0
     )
     drawing = solutions.drawing_utils
     drawing_styles = solutions.drawing_styles
@@ -97,6 +99,9 @@ def main():
         if detection_results.multi_hand_landmarks is not None:
             for hand_landmarks, handedness in zip(detection_results.multi_hand_landmarks,
                                                   detection_results.multi_handedness):
+                # Return whether it is Right or Left Hand
+                label = MessageToDict(handedness)['classification'][0]['label']
+
                 # Calculate boundaries for bounding box
                 bounding_box = calc_bounding_box(debug_image, hand_landmarks)
 
@@ -118,22 +123,35 @@ def main():
 
                 # Try to predict hand gesture and:
                 try:
-                    data_frame = DataFrame([pre_processed_landmark_list])
-                    sign_language_class = model.predict(data_frame)[0]
-                    sign_language_prob = model.predict_proba(data_frame)[0]
+                    if label == 'Right':
+                        data_frame = DataFrame([pre_processed_landmark_list])
+                        sign_language_class = model.predict(data_frame)[0]
+                        sign_language_prob = model.predict_proba(data_frame)[0]
 
-                    # Draw "Hand detected" description
-                    debug_image = draw_hand_detected(debug_image, sign_language_class)
+                        # Draw "Hand detected" description
+                        debug_image = draw_hand_detected(debug_image, sign_language_class)
 
-                    # Draw bounding box with descriptions
-                    debug_image = draw_upper_bound_desc(debug_image, bounding_box, sign_language_class)
-                    debug_image = draw_bounding_box(True, debug_image, bounding_box)
-                    debug_image, prob_percentage = draw_lower_bound_desc(debug_image, bounding_box, sign_language_prob)
+                        # Draw bounding box with descriptions
+                        debug_image = draw_upper_bound_desc(debug_image, bounding_box, sign_language_class)
+                        debug_image = draw_bounding_box(True, debug_image, bounding_box)
+                        debug_image, prob_percentage = draw_lower_bound_desc(debug_image, bounding_box,
+                                                                             sign_language_prob)
 
-                    # Show output in terminal
-                    print('Sign : ' + sign_language_class)
-                    print(sign_language_prob)
-                    print(prob_percentage)
+                        # Show output in terminal
+                        print('Sign : ' + sign_language_class)
+                        print(sign_language_prob)
+                        print(prob_percentage)
+
+                    if label == 'Left':
+                        # Draw "Hand detected" description
+                        debug_image = draw_hand_detected(debug_image, 'Right hand only')
+
+                        # Draw bounding box with descriptions
+                        debug_image = draw_upper_bound_desc(debug_image, bounding_box, 'OnlyRightHandUse')
+                        debug_image = draw_bounding_box(True, debug_image, bounding_box)
+
+                        # Show output in terminal
+                        print('Left hand detected - Right hand use only.')
 
                 # Finally if not detected, then just bypass to below code
                 finally:
