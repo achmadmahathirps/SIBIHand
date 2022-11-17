@@ -206,6 +206,7 @@ def pre_process_landmark(landmark_list):
         temp_landmark_list[index][0] = temp_landmark_list[index][0] - base_x
         temp_landmark_list[index][1] = base_y - temp_landmark_list[index][1]
 
+        # Old syntax :
         # temp_landmark_list[index][0] = temp_landmark_list[index][0] - base_x
         # temp_landmark_list[index][1] = temp_landmark_list[index][1] - base_y
 
@@ -227,7 +228,7 @@ def pre_process_landmark(landmark_list):
 # Calculation functions ################################################################################################
 
 
-# Cosmetic functions ###################################################################################################
+# Decorative functions #################################################################################################
 def draw_student_info(image):
     # Text & text position
     text = "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022"
@@ -275,18 +276,18 @@ def draw_fps(image, fps):
 def draw_hand_detected(image, sign_language_class):
     # Text & text position
     text = "Hand detected : " + sign_language_class
-    x_position, y_position = 10, 60
+    x_position, y_position = 10, 90
 
     # Font settings
     font_size = 0.75
-    black, white = (0, 0, 0), (255, 255, 255)
+    black, green = (0, 0, 0), (0, 255, 0)
     outline_thickness = 4
-    white_thickness = 1
+    green_thickness = 1
 
     putText(image, text, (x_position, y_position), FONT_HERSHEY_SIMPLEX, font_size,
             black, outline_thickness, LINE_AA)
     putText(image, text, (x_position, y_position), FONT_HERSHEY_SIMPLEX, font_size,
-            white, white_thickness, LINE_AA)
+            green, green_thickness, LINE_AA)
 
     return image
 
