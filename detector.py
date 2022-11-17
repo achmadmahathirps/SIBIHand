@@ -43,7 +43,7 @@ def main():
     # ##################################################################################################################
 
     # Open & import trained model
-    with open('model/svm_trained_classifier_v2.pkl', read_pkl) as model_file:
+    with open('model/svm_trained_classifier_v2_20percent.pkl', read_pkl) as model_file:
         model = load(model_file)
 
     # While in capturing process
@@ -51,11 +51,13 @@ def main():
 
         # Application stops when "ESC" key is pressed
         if waitKey(3) & press_action == escape_key:
+            print("Exited through ESC key.")
             break
 
         # If frame/image in capture is not available left, then stop the application
         available, image = from_capture.read()
         if not available:
+            print("Video/image frame not available left.")
             break
 
         # Flip (if built-in webcam is detected) and copy the image for debugging
@@ -108,7 +110,7 @@ def main():
                     sign_language_prob = model.predict_proba(data_frame)[0]
 
                     # Draw "Hand detected" description
-                    debug_image = draw_hand_detected(debug_image)
+                    debug_image = draw_hand_detected(debug_image, sign_language_class)
 
                     # Draw bounding box with descriptions
                     debug_image = draw_upper_bound_desc(debug_image, bounding_box, sign_language_class)
@@ -116,7 +118,7 @@ def main():
                     debug_image, prob_percentage = draw_lower_bound_desc(debug_image, bounding_box, sign_language_prob)
 
                     # Show output in terminal
-                    print(sign_language_class)
+                    print('Sign : ' + sign_language_class)
                     print(sign_language_prob)
                     print(prob_percentage)
 
@@ -257,9 +259,9 @@ def draw_fps(image, fps):
     return image
 
 
-def draw_hand_detected(image):
+def draw_hand_detected(image, sign_language_class):
     # Text & text position
-    text = "Hand detected"
+    text = "Hand detected : " + sign_language_class
     x_position, y_position = 10, 60
 
     # Font settings
