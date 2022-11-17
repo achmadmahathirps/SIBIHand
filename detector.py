@@ -19,7 +19,7 @@ def main():
     # Initializations ##################################################################################################
 
     # Initialize camera settings
-    webcam = 2  # <- (0 = built-in webcam, 2 = droidcam)
+    webcam = 0  # <- (0 = built-in webcam, 2 = droidcam)
     from_capture = VideoCapture(webcam)
     from_capture.set(CAP_PROP_FRAME_WIDTH, 960)
     from_capture.set(CAP_PROP_FRAME_HEIGHT, 540)
@@ -31,7 +31,7 @@ def main():
         max_num_hands=1,
         min_detection_confidence=0.5,
         min_tracking_confidence=0.5,
-        model_complexity=0
+        model_complexity=1
     )
     drawing = solutions.drawing_utils
     drawing_styles = solutions.drawing_styles
@@ -420,49 +420,10 @@ def draw_outlines(image, landmark_point):
         line(image, tuple(landmark_point[19]), tuple(landmark_point[20]),
              black, 6)
 
+    # Keypoint shadows
     for index, landmark in enumerate(landmark_point):
-        if index == 0:
-            circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 1:
-            circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 2:
-            circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 3:
-            circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 4:
-            circle(image, (landmark[0], landmark[1]), 8, black, 1)
-        if index == 5:
-            circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 6:
-            circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 7:
-            circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 8:
-            circle(image, (landmark[0], landmark[1]), 8, black, 1)
-        if index == 9:
-            circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 10:
-            circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 11:
-            circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 12:
-            circle(image, (landmark[0], landmark[1]), 8, black, 1)
-        if index == 13:
-            circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 14:
-            circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 15:
-            circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 16:
-            circle(image, (landmark[0], landmark[1]), 8, black, 1)
-        if index == 17:
-            circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 18:
-            circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 19:
-            circle(image, (landmark[0], landmark[1]), 5, black, 1)
-        if index == 20:
-            circle(image, (landmark[0], landmark[1]), 8, black, 1)
+        if index == index:
+            circle(image, (landmark[0], landmark[1]), 7, black, 1)
 
     return image
 # Cosmetics functions ##################################################################################################
