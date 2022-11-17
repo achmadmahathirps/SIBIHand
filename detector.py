@@ -19,7 +19,7 @@ def main():
     # Initializations ##################################################################################################
 
     # Initialize camera settings
-    webcam = 0  # <- (0 = built-in webcam, 2 = droidcam)
+    webcam = 2  # <- (0 = built-in webcam, 2 = droidcam)
     from_capture = VideoCapture(webcam)
     from_capture.set(CAP_PROP_FRAME_WIDTH, 960)
     from_capture.set(CAP_PROP_FRAME_HEIGHT, 540)
@@ -275,7 +275,8 @@ def draw_fps(image, fps):
 
 def draw_hand_detected(image, sign_language_class):
     # Text & text position
-    text = "Hand detected : " + sign_language_class
+    text = " ".join(["Hand detected :", sign_language_class])
+    # text = "Hand detected : " + sign_language_class
     x_position, y_position = 10, 90
 
     # Font settings
