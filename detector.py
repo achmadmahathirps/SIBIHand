@@ -19,7 +19,7 @@ def main():
     # Initializations ##################################################################################################
 
     # Initialize camera settings
-    webcam = 2  # <- (0 = built-in webcam, 2 = droidcam)
+    webcam = 0  # <- (0 = built-in webcam, 2 = droidcam)
     from_capture = VideoCapture(webcam)
     from_capture.set(CAP_PROP_FRAME_WIDTH, 960)
     from_capture.set(CAP_PROP_FRAME_HEIGHT, 540)
@@ -31,7 +31,7 @@ def main():
         max_num_hands=1,
         min_detection_confidence=0.5,
         min_tracking_confidence=0.5,
-        model_complexity=1
+        model_complexity=0
     )
     drawing = solutions.drawing_utils
     drawing_styles = solutions.drawing_styles
@@ -39,6 +39,8 @@ def main():
     # Initialize misc.
     read_pkl = 'rb'
     previous_time = 0
+    on = False
+    key_release = True
 
     # ##################################################################################################################
 
@@ -59,6 +61,16 @@ def main():
         if not available:
             print("Video/image frame not available left.")
             break
+
+        # Toggle Mediapipe hand landmark visuals
+        if keyboard.is_pressed('v'):  # <- Toggle by pressing "v" key
+            while keyboard.is_pressed('v'):
+                pass
+            if on:
+                key_release = False  # <- Visualizer turned off by default.
+            elif not on:
+                key_release = True
+            on = not on
 
         # Flip (if built-in webcam is detected) and copy the image for debugging
         image = flip(image, 1)
@@ -95,13 +107,14 @@ def main():
                 pre_processed_landmark_list = pre_process_landmark(landmark_list)
 
                 # 3. Visualize complete hand landmarks
-                debug_image = draw_outlines(debug_image, landmark_list)
-                drawing.draw_landmarks(  # (Mediapipe default visualizer)
-                    debug_image,
-                    hand_landmarks,
-                    mp_hands.HAND_CONNECTIONS,
-                    drawing_styles.get_default_hand_landmarks_style(),
-                    drawing_styles.get_default_hand_connections_style())
+                if not key_release:
+                    debug_image = draw_outlines(debug_image, landmark_list)
+                    drawing.draw_landmarks(  # (Mediapipe default visualizer)
+                        debug_image,
+                        hand_landmarks,
+                        mp_hands.HAND_CONNECTIONS,
+                        drawing_styles.get_default_hand_landmarks_style(),
+                        drawing_styles.get_default_hand_connections_style())
 
                 # Try to predict hand gesture and:
                 try:
