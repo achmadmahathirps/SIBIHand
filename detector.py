@@ -9,7 +9,8 @@ from numpy import \
     empty, array, append, argmax
 from cv2 import \
     VideoCapture, CAP_PROP_FRAME_WIDTH, CAP_PROP_FRAME_HEIGHT, waitKey, flip, cvtColor, COLOR_BGR2RGB, imshow, \
-    boundingRect, putText, FONT_HERSHEY_SIMPLEX, LINE_AA, rectangle, line, circle
+    boundingRect, putText, FONT_HERSHEY_SIMPLEX, LINE_AA, rectangle, line, circle, CAP_PROP_FOURCC, VideoWriter_fourcc,\
+    CAP_DSHOW
 
 from mediapipe import solutions
 
@@ -22,7 +23,8 @@ def main():
 
     # Initialize camera settings
     webcam = 1  # <- (0 = built-in webcam, 1 = external webcam)
-    from_capture = VideoCapture(webcam)
+
+    from_capture = VideoCapture(webcam, CAP_DSHOW)
     from_capture.set(CAP_PROP_FRAME_WIDTH, 960)
     from_capture.set(CAP_PROP_FRAME_HEIGHT, 540)
 
@@ -33,7 +35,7 @@ def main():
         max_num_hands=1,
         min_detection_confidence=0.5,
         min_tracking_confidence=0.5,
-        model_complexity=0
+        model_complexity=1
     )
     drawing = solutions.drawing_utils
     drawing_styles = solutions.drawing_styles
@@ -99,19 +101,49 @@ def main():
         if detection_results.multi_hand_landmarks is not None:
             for hand_landmarks, handedness in zip(detection_results.multi_hand_landmarks,
                                                   detection_results.multi_handedness):
-                # Return whether it is Right or Left Hand
-                label = MessageToDict(handedness)['classification'][0]['label']
+                # 0. Return whether it is Right or Left Hand
+                detected_hand = MessageToDict(handedness)['classification'][0]['label']
 
-                # Calculate boundaries for bounding box
-                bounding_box = calc_bounding_box(debug_image, hand_landmarks)
-
-                # 1. Extract & convert pre-normalized landmark keys into absolute pixel value
+                # 1. Extract & convert pre-normalized landmark keys from hand into absolute pixel value
                 landmark_list = calc_landmark_list(debug_image, hand_landmarks)
 
-                # 2. Convert into relative coordinates / normalize keys from wrist point
-                pre_processed_landmark_list = pre_process_landmark(landmark_list)
+                # 2a. If right hand is detected
+                if detected_hand == 'Right':
+                    # 3a. Convert into relative coordinates / normalize keys from wrist point
+                    pre_processed_landmark_list = pre_process_landmark(landmark_list)
+                # 2b. else (if) left hand is detected
+                else:
+                    # 3b. Convert & invert x coordinates into relative coordinates / normalize keys from wrist point
+                    pre_processed_landmark_list = pre_process_landmark_x_inverted(landmark_list)
 
-                # 3. Visualize complete hand landmarks
+                # If hand detection is comfirmed, try :
+                try:
+                    # Compare dataset with processed landmarks from detected hand
+                    data_frame = DataFrame([pre_processed_landmark_list])
+                    sign_language_class = model.predict(data_frame)[0]
+                    sign_language_prob = model.predict_proba(data_frame)[0]
+
+                    # Draw "Hand detected" description
+                    debug_image = draw_hand_detected(debug_image, sign_language_class)
+
+                    # Calculate boundaries for bounding box
+                    bounding_box = calc_bounding_box(debug_image, hand_landmarks)
+
+                    # Draw bounding box with descriptions
+                    debug_image = draw_upper_bound_desc(debug_image, bounding_box, sign_language_class)
+                    debug_image = draw_bounding_box(True, debug_image, bounding_box)
+                    debug_image, prob_percentage = draw_lower_bound_desc(debug_image, bounding_box, sign_language_prob)
+
+                    # Show output in terminal
+                    print('Sign : ' + sign_language_class)
+                    print(sign_language_prob)
+                    print(prob_percentage)
+
+                # Finally if hand is not detected, just bypass to the below code
+                finally:
+                    pass
+
+                # Draw complete hand landmarks
                 if not key_release:
                     debug_image = draw_outlines(debug_image, landmark_list)
                     drawing.draw_landmarks(  # (Mediapipe default visualizer)
@@ -120,42 +152,6 @@ def main():
                         mp_hands.HAND_CONNECTIONS,
                         drawing_styles.get_default_hand_landmarks_style(),
                         drawing_styles.get_default_hand_connections_style())
-
-                # Try to predict hand gesture and:
-                try:
-                    if label == 'Right':
-                        data_frame = DataFrame([pre_processed_landmark_list])
-                        sign_language_class = model.predict(data_frame)[0]
-                        sign_language_prob = model.predict_proba(data_frame)[0]
-
-                        # Draw "Hand detected" description
-                        debug_image = draw_hand_detected(debug_image, sign_language_class)
-
-                        # Draw bounding box with descriptions
-                        debug_image = draw_upper_bound_desc(debug_image, bounding_box, sign_language_class)
-                        debug_image = draw_bounding_box(True, debug_image, bounding_box)
-                        debug_image, prob_percentage = draw_lower_bound_desc(debug_image, bounding_box,
-                                                                             sign_language_prob)
-
-                        # Show output in terminal
-                        print('Sign : ' + sign_language_class)
-                        print(sign_language_prob)
-                        print(prob_percentage)
-
-                    if label == 'Left':
-                        # Draw "Hand detected" description
-                        debug_image = draw_hand_detected(debug_image, 'Right hand only')
-
-                        # Draw bounding box with descriptions
-                        debug_image = draw_upper_bound_desc(debug_image, bounding_box, 'OnlyRightHandUse')
-                        debug_image = draw_bounding_box(True, debug_image, bounding_box)
-
-                        # Show output in terminal
-                        print('Left hand detected - Right hand use only.')
-
-                # Finally if not detected, then just bypass to below code
-                finally:
-                    pass
 
         # Output frame
         imshow('Hand (Fingerspelling) Sign Language Recognition', debug_image)
@@ -223,6 +219,47 @@ def pre_process_landmark(landmark_list):
         # for other landmarks, subtract with set reference key value
         temp_landmark_list[index][0] = temp_landmark_list[index][0] - base_x
         temp_landmark_list[index][1] = base_y - temp_landmark_list[index][1]
+
+        # Old syntax :
+        # temp_landmark_list[index][0] = temp_landmark_list[index][0] - base_x
+        # temp_landmark_list[index][1] = temp_landmark_list[index][1] - base_y
+
+    # Convert to a one-dimensional matrix list
+    temp_landmark_list = list(
+        chain.from_iterable(temp_landmark_list))
+
+    # Find the max value inside the one-dimensional landmark list
+    max_value = max(list(map(abs, temp_landmark_list)))
+
+    # Normalize the relative keys based from the max value
+    def normalize_(n):
+        return n / max_value
+
+    # Place & replace landmark list key with new normalized value
+    temp_landmark_list = list(map(normalize_, temp_landmark_list))
+
+    # Output : return with the new temp_landmark_list value
+    return temp_landmark_list
+
+
+def pre_process_landmark_x_inverted(landmark_list):
+
+    # Receive landmark list from calc_landmark_list function
+    temp_landmark_list = deepcopy(landmark_list)
+
+    # Initialize reference key
+    base_x, base_y = 0, 0
+
+    # For each detected landmark keys in landmark list
+    for index, landmark_point in enumerate(temp_landmark_list):
+        # If the first index of the landmark list (wrist) is detected,
+        # set the corresponding landmark keys to reference key
+        if index == 0:
+            base_x, base_y = landmark_point[0], landmark_point[1]
+
+        # for other landmarks, subtract with set reference key value
+        temp_landmark_list[index][0] = (temp_landmark_list[index][0] - base_x) * -1
+        temp_landmark_list[index][1] = (base_y - temp_landmark_list[index][1])
 
         # Old syntax :
         # temp_landmark_list[index][0] = temp_landmark_list[index][0] - base_x
