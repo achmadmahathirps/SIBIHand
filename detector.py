@@ -49,7 +49,7 @@ def main():
     # ##################################################################################################################
 
     # Open & import trained model
-    with open('model/svm_trained_classifier_v2_20percent.pkl', read_pkl) as model_file:
+    with open('model/svm_trained_classifier_test.pkl', read_pkl) as model_file:
         model = load(model_file)
 
     # While in capturing process
@@ -111,14 +111,15 @@ def main():
                 if detected_hand == 'Right':
                     # 3a. Convert into relative coordinates / normalize keys from wrist point
                     pre_processed_landmark_list = pre_process_landmark(landmark_list)
+
                 # 2b. else (if) left hand is detected
                 else:
                     # 3b. Convert & invert x coordinates into relative coordinates / normalize keys from wrist point
                     pre_processed_landmark_list = pre_process_landmark_x_inverted(landmark_list)
 
-                # If hand detection is comfirmed, try :
+                # If hand detection is confirmed, try :
                 try:
-                    # Compare dataset with processed landmarks from detected hand
+                    # 4. Compare dataset with processed landmarks from detected hand
                     data_frame = DataFrame([pre_processed_landmark_list])
                     sign_language_class = model.predict(data_frame)[0]
                     sign_language_prob = model.predict_proba(data_frame)[0]
@@ -179,7 +180,7 @@ def calc_bounding_box(image, hand_landmarks):
     return [x, y, x + w, y + h]
 
 
-# Extract & convert pre-normalized landmark keys into absolute pixel value
+# Extract & convert default-normalized landmark keys into absolute pixel value
 def calc_landmark_list(image, hand_landmarks):
 
     # Initialize image size & new landmark list
@@ -200,7 +201,7 @@ def calc_landmark_list(image, hand_landmarks):
     return landmark_list
 
 
-# Convert into relative coordinates & normalize keys from wrist point
+# Convert into wrist-relative point coordinates & normalize keys
 def pre_process_landmark(landmark_list):
 
     # Receive landmark list from calc_landmark_list function
@@ -220,10 +221,6 @@ def pre_process_landmark(landmark_list):
         temp_landmark_list[index][0] = temp_landmark_list[index][0] - base_x
         temp_landmark_list[index][1] = base_y - temp_landmark_list[index][1]
 
-        # Old syntax :
-        # temp_landmark_list[index][0] = temp_landmark_list[index][0] - base_x
-        # temp_landmark_list[index][1] = temp_landmark_list[index][1] - base_y
-
     # Convert to a one-dimensional matrix list
     temp_landmark_list = list(
         chain.from_iterable(temp_landmark_list))
@@ -242,6 +239,7 @@ def pre_process_landmark(landmark_list):
     return temp_landmark_list
 
 
+# Convert into wrist-relative point coordinates & normalize keys for left hand
 def pre_process_landmark_x_inverted(landmark_list):
 
     # Receive landmark list from calc_landmark_list function
@@ -252,20 +250,19 @@ def pre_process_landmark_x_inverted(landmark_list):
 
     # For each detected landmark keys in landmark list
     for index, landmark_point in enumerate(temp_landmark_list):
+
         # If the first index of the landmark list (wrist) is detected,
-        # set the corresponding landmark keys to reference key
+        # set the corresponding landmark keys as 0 for reference key
         if index == 0:
             base_x, base_y = landmark_point[0], landmark_point[1]
 
-        # for other landmarks, subtract with set reference key value
+        # for other landmarks in left hand, subtract with reference key value and multiply it with
+        # negative value. This process makes the left hand can be detected as right hand so
+        # it can detect sign language without adding a new dataset.
         temp_landmark_list[index][0] = (temp_landmark_list[index][0] - base_x) * -1
         temp_landmark_list[index][1] = (base_y - temp_landmark_list[index][1])
 
-        # Old syntax :
-        # temp_landmark_list[index][0] = temp_landmark_list[index][0] - base_x
-        # temp_landmark_list[index][1] = temp_landmark_list[index][1] - base_y
-
-    # Convert to a one-dimensional matrix list
+    # Convert to a one-dimensional matrix list (remove internal square brackets in arrays)
     temp_landmark_list = list(
         chain.from_iterable(temp_landmark_list))
 
@@ -287,7 +284,7 @@ def pre_process_landmark_x_inverted(landmark_list):
 def draw_student_info(image):
     # Text & text position
     text = "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022"
-    x_position, y_position = 323, 470
+    x_position, y_position = 10, 470
 
     # Font settings
     font_size = 0.3
