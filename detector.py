@@ -2,17 +2,15 @@ from itertools import chain
 from pickle import load
 from time import time
 from copy import deepcopy
-
 from google.protobuf.json_format import MessageToDict
 from pandas import DataFrame
+from mediapipe import solutions
 from numpy import \
     empty, array, append, argmax
 from cv2 import \
     VideoCapture, CAP_PROP_FRAME_WIDTH, CAP_PROP_FRAME_HEIGHT, waitKey, flip, cvtColor, COLOR_BGR2RGB, imshow, \
     boundingRect, putText, FONT_HERSHEY_SIMPLEX, LINE_AA, rectangle, line, circle, CAP_PROP_FOURCC, VideoWriter_fourcc,\
     CAP_DSHOW
-
-from mediapipe import solutions
 
 import keyboard
 
@@ -239,7 +237,7 @@ def pre_process_landmark(landmark_list):
     return temp_landmark_list
 
 
-# Convert into wrist-relative point coordinates & normalize keys for left hand
+# (!) Convert into wrist-relative point coordinates & normalize keys for left hand 
 def pre_process_landmark_x_inverted(landmark_list):
 
     # Receive landmark list from calc_landmark_list function
