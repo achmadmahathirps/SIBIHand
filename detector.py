@@ -173,9 +173,9 @@ def calc_bounding_box(image, hand_landmarks):
 
         landmark_array = append(landmark_array, landmark_point, axis=0)
 
-    x, y, w, h = boundingRect(landmark_array)
+    x_axis, y_axis, width, height = boundingRect(landmark_array)
 
-    return [x, y, x + w, y + h]
+    return [x_axis, y_axis, x_axis + width, y_axis + height]
 
 
 # Extract & convert default-normalized landmark keys into absolute pixel value
@@ -191,6 +191,8 @@ def calc_landmark_list(image, hand_landmarks):
         # Convert pre-normalized landmark keys into absolute pixel value
         landmark_x = min(int(landmark.x * image_width), image_width - 1)
         landmark_y = min(int(landmark.y * image_height), image_height - 1)
+
+        # ! landmark_z is unused due to a bug from Mediapipe Hands when detecting the depth of the hand
         # landmark_z = landmark.z
 
         # Put the converted landmark keys inside the new landmark list
