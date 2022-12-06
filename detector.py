@@ -1,3 +1,4 @@
+# Import libraries #####################################################################################################
 from itertools import chain
 from pickle import load
 from time import time
@@ -9,22 +10,21 @@ from numpy import \
     empty, array, append, argmax
 from cv2 import \
     VideoCapture, CAP_PROP_FRAME_WIDTH, CAP_PROP_FRAME_HEIGHT, waitKey, flip, cvtColor, COLOR_BGR2RGB, imshow, \
-    boundingRect, putText, FONT_HERSHEY_SIMPLEX, LINE_AA, rectangle, line, circle, CAP_PROP_FOURCC, VideoWriter_fourcc,\
-    CAP_DSHOW
+    boundingRect, putText, FONT_HERSHEY_SIMPLEX, LINE_AA, rectangle, line, circle, CAP_DSHOW
 
 import keyboard
 
 
 # Main program #########################################################################################################
 def main():
-    # Initializations ##################################################################################################
+    # Initializations #########################################
 
     # Initialize camera settings
     webcam = 1  # <- (0 = built-in webcam, 1 = external webcam)
 
     from_capture = VideoCapture(webcam, CAP_DSHOW)
-    from_capture.set(CAP_PROP_FRAME_WIDTH, 960)
-    from_capture.set(CAP_PROP_FRAME_HEIGHT, 540)
+    from_capture.set(CAP_PROP_FRAME_WIDTH, 640)
+    from_capture.set(CAP_PROP_FRAME_HEIGHT, 480)
 
     # Initialize Mediapipe hand model parameters
     mp_hands = solutions.hands
@@ -44,7 +44,7 @@ def main():
     on = False
     key_release = True
 
-    # ##################################################################################################################
+    # #########################################################
 
     # Open & import trained model
     with open('model/svm_trained_classifier_test.pkl', read_pkl) as model_file:
@@ -237,7 +237,7 @@ def pre_process_landmark(landmark_list):
     return temp_landmark_list
 
 
-# (!) Convert into wrist-relative point coordinates & normalize keys for left hand 
+# Convert into wrist-relative point coordinates & normalize keys for left hand 
 def pre_process_landmark_x_inverted(landmark_list):
 
     # Receive landmark list from calc_landmark_list function
@@ -347,15 +347,15 @@ def draw_upper_bound_desc(image, bbox, sign_lang_class):
     sign_alphabet = sign_lang_class.split(' ')[0]
 
     # Text & tracking position
-    text = " ".join(["Class :", sign_alphabet])
+    text = " ".join(["Sign :", sign_alphabet])
     top, left, bottom = 0, 1, 2
-    offset = 22
+    offset = 25
 
     # Font settings
-    font_size = 0.6
+    font_size = 0.7
     black, white = (0, 0, 0), (255, 255, 255)
-    outline_thickness = 2
-    white_thickness = 1
+    outline_thickness = 5
+    white_thickness = 2
 
     rectangle(image, (bbox[top], bbox[left]), (bbox[bottom], bbox[left] - offset), black, -1)
     putText(image, text, (bbox[top] + 5, bbox[left] - 4),
@@ -476,7 +476,7 @@ def draw_outlines(image, landmark_point):
             circle(image, (landmark[0], landmark[1]), 7, black, 1)
 
     return image
-# Cosmetics functions ##################################################################################################
+# Decorative functions #################################################################################################
 
 
 # Run main program
