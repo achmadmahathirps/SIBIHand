@@ -55,13 +55,14 @@ def main():
 
         # Application stops when "ESC" key is pressed
         if waitKey(3) & keyboard.is_pressed('ESC'):
-            print("Exited through ESC key.")
+            print(' ')
+            print("(!) Exited through ESC key.")
             break
 
         # If frame/image in capture is not available left, then stop the application
         available, image = from_capture.read()
         if not available:
-            print("Video/image frame not available left.")
+            print("(!) Video/image frame not available left.")
             break
 
         # Toggle Mediapipe hand landmark visuals
@@ -104,6 +105,7 @@ def main():
 
                 # 1. Extract & convert pre-normalized landmark keys from hand into absolute pixel value
                 landmark_list = calc_landmark_list(debug_image, hand_landmarks)
+                # print(landmark_list)
 
                 # 2a. If right hand is detected
                 if detected_hand == 'Right':
@@ -133,10 +135,13 @@ def main():
                     debug_image = draw_bounding_box(True, debug_image, bounding_box)
                     debug_image, prob_percentage = draw_lower_bound_desc(debug_image, bounding_box, sign_language_prob)
 
-                    # Show output in terminal
+                    # Show output in terminal ############
+                    print(' ')
+                    print('Handedness : ' + detected_hand)
                     print('Sign : ' + sign_language_class)
-                    print(sign_language_prob)
+                    # print(sign_language_prob)
                     print(prob_percentage)
+                    ######################################
 
                 # Finally if hand is not detected, just bypass to the below code
                 finally:
@@ -151,7 +156,7 @@ def main():
                         mp_hands.HAND_CONNECTIONS,
                         drawing_styles.get_default_hand_landmarks_style(),
                         drawing_styles.get_default_hand_connections_style())
-
+                
         # Output frame
         imshow('Hand (Fingerspelling) Sign Language Recognition', debug_image)
 
@@ -257,7 +262,7 @@ def pre_process_landmark_x_inverted(landmark_list):
             base_x, base_y = landmark_point[0], landmark_point[1]
 
         # for other landmarks in left hand, subtract with reference key value and multiply it with
-        # negative value. This process makes the left hand can be detected as right hand so
+        # negative value. This process makes the left hand can be detected as right hand, so
         # it can detect sign language without adding a new dataset.
         temp_landmark_list[index][0] = (temp_landmark_list[index][0] - base_x) * -1
         temp_landmark_list[index][1] = (base_y - temp_landmark_list[index][1])
