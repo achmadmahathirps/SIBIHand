@@ -20,7 +20,11 @@ def main():
     # Initializations #########################################
 
     # Initialize camera settings
-    webcam = 1  # <- (0 = built-in webcam, 1 = external webcam)
+    webcam = input('Please select your camera source (0 = built-in webcam / 1 = external camera) : ')# <- (0 = built-in webcam, 1 = external webcam)
+    model_complexity_input = input('Please select the detection quality (0 = low / 1 = high) : ')
+
+    webcam = int(webcam)
+    model_complexity_input = int(model_complexity_input)
 
     from_capture = VideoCapture(webcam, CAP_DSHOW)
     from_capture.set(CAP_PROP_FRAME_WIDTH, 640)
@@ -33,7 +37,7 @@ def main():
         max_num_hands=1,
         min_detection_confidence=0.5,
         min_tracking_confidence=0.5,
-        model_complexity=1
+        model_complexity=model_complexity_input
     )
     drawing = solutions.drawing_utils
     drawing_styles = solutions.drawing_styles
@@ -41,6 +45,7 @@ def main():
     # Initialize misc.
     read_pkl = 'rb'
     previous_time = 0
+    last_detected = time()
     on = False
     key_release = True
 
@@ -125,13 +130,15 @@ def main():
                     sign_language_prob = model.predict_proba(data_frame)[0]
 
                     # Draw "Hand detected" description
-                    debug_image = draw_hand_detected(debug_image, sign_language_class)
+                    # if (time() - last_detected) > 2:
+                    #     debug_image = draw_hand_detected(debug_image, sign_language_class)
 
                     # Calculate boundaries for bounding box
                     bounding_box = calc_bounding_box(debug_image, hand_landmarks)
 
                     # Draw bounding box with descriptions
-                    debug_image = draw_upper_bound_desc(debug_image, bounding_box, sign_language_class)
+                    debug_image = draw_upper_bound_desc(debug_image, bounding_box, sign_language_class,
+                                                        sign_language_prob)
                     debug_image = draw_bounding_box(True, debug_image, bounding_box)
                     debug_image, prob_percentage = draw_lower_bound_desc(debug_image, bounding_box, sign_language_prob)
 
@@ -156,7 +163,9 @@ def main():
                         mp_hands.HAND_CONNECTIONS,
                         drawing_styles.get_default_hand_landmarks_style(),
                         drawing_styles.get_default_hand_connections_style())
-                
+        else:
+            last_detected = time()
+
         # Output frame
         imshow('Hand (Fingerspelling) Sign Language Recognition', debug_image)
 
@@ -350,11 +359,14 @@ def draw_hand_detected(image, sign_language_class):
     return image
 
 
-def draw_upper_bound_desc(image, bbox, sign_lang_class):
+def draw_upper_bound_desc(image, bbox, sign_lang_class, sign_lang_prob):
     sign_alphabet = sign_lang_class.split(' ')[0]
 
     # Text & tracking position
-    text = " ".join(["Sign :", sign_alphabet])
+    if (round(sign_lang_prob[argmax(sign_lang_prob)], 2) * 100) > 59:
+        text = " ".join(["Sign :", sign_alphabet])
+    else:
+        text = "Undetected"
     top, left, bottom = 0, 1, 2
     offset = 25
 
