@@ -1,11 +1,11 @@
-# Import libraries #####################################################################################################
+# Import libraries =====================================================================================================
 from itertools import chain
 from pickle import load
 from time import time
 from copy import deepcopy
-from google.protobuf.json_format import MessageToDict
 from pandas import DataFrame
 from mediapipe import solutions
+from google.protobuf.json_format import MessageToDict
 from numpy import \
     empty, array, append, argmax
 from cv2 import \
@@ -14,18 +14,14 @@ from cv2 import \
 
 import keyboard
 
-
-# Main program #########################################################################################################
+# Main program : START =================================================================================================
 def main():
-    # Initializations #########################################
+
+    # Initialize camera inputs
+    webcam = input('Please select your camera source (0 = built-in webcam / 1 = external camera) : ')
+    webcam = int(webcam)
 
     # Initialize camera settings
-    webcam = input('Please select your camera source (0 = built-in webcam / 1 = external camera) : ')
-    # model_complexity_input = input('Please select the detection quality (0 = low / 1 = high) : ')
-
-    webcam = int(webcam)# <- (0 = built-in webcam, 1 = external webcam)
-    # model_complexity_input = int(model_complexity_input)
-
     from_capture = VideoCapture(webcam, CAP_DSHOW)
     from_capture.set(CAP_PROP_FRAME_WIDTH, 640)
     from_capture.set(CAP_PROP_FRAME_HEIGHT, 480)
@@ -39,38 +35,38 @@ def main():
         min_tracking_confidence=0.5,
         model_complexity=1
     )
+
+    # Initialize Mediapipe hand visualizer
     drawing = solutions.drawing_utils
     drawing_styles = solutions.drawing_styles
 
-    # Initialize misc.
+    # Initialize misc. variables
     read_pkl = 'rb'
     previous_time = 0
     last_detected = time()
     on = False
     key_release = True
 
-    # #########################################################
-
-    # Open & import trained model
+    # Open & load trained .pkl model
     with open('model/svm_trained_classifier_test.pkl', read_pkl) as model_file:
         model = load(model_file)
 
     # While in capturing process
     while True:
 
-        # Application stops when "ESC" key is pressed
+        # Program stops when "ESC" key is pressed
         if waitKey(3) & keyboard.is_pressed('ESC'):
             print(' ')
             print("(!) Exited through ESC key.")
             break
 
-        # If frame/image in capture is not available left, then stop the application
+        # If frame/image in capture is not available left, then stop the program
         available, image = from_capture.read()
         if not available:
             print("(!) Video/image frame not available left.")
             break
 
-        # Toggle Mediapipe hand landmark visuals
+        # Show Mediapipe hand landmark visuals through keyboard switch
         if keyboard.is_pressed('v'):  # <- Toggle by pressing "v" key
             while keyboard.is_pressed('v'):
                 pass
@@ -80,7 +76,7 @@ def main():
                 key_release = True
             on = not on
 
-        # Flip (if built-in webcam is detected) and copy the image for debugging
+        # Flip the image to mirror mode and copy the image for further debugging
         image = flip(image, 1)
         debug_image = deepcopy(image)
 
@@ -105,33 +101,26 @@ def main():
         if detection_results.multi_hand_landmarks is not None:
             for hand_landmarks, handedness in zip(detection_results.multi_hand_landmarks,
                                                   detection_results.multi_handedness):
-                # 0. Return whether it is Right or Left Hand
+
+                # 1. Retrieve information whether it is Right or Left Hand
                 detected_hand = MessageToDict(handedness)['classification'][0]['label']
 
-                # 1. Extract & convert pre-normalized landmark keys from hand into absolute pixel value
+                # 2. Extract & convert pre-normalized landmark keys from hand into absolute pixel value
                 landmark_list = calc_landmark_list(debug_image, hand_landmarks)
-                # print(landmark_list)
 
-                # 2a. If right hand is detected
-                if detected_hand == 'Right':
-                    # 3a. Convert into relative coordinates / normalize keys from wrist point
-                    pre_processed_landmark_list = pre_process_landmark(landmark_list)
 
-                # 2b. else (if) left hand is detected
-                else:
-                    # 3b. Convert & invert x coordinates into relative coordinates / normalize keys from wrist point
-                    pre_processed_landmark_list = pre_process_landmark_x_inverted(landmark_list)
+                # 3. Convert the processed landmarks into relative coordinates from wrist point
+                #  - At the same time, invert the x values if a left hand is detected.
+                #  - This makes sure that the left hand can be detected as right hand, so we don't have to add another
+                #    sign language alphabet datasets specifically for the left hand.
+                pre_processed_landmark_list = pre_process_landmark(landmark_list, detected_hand)
 
                 # If hand detection is confirmed, try :
                 try:
-                    # 4. Compare dataset with processed landmarks from detected hand
+                    # 4. Compare trained dataset from .pkl model with processed landmarks from detected hand
                     data_frame = DataFrame([pre_processed_landmark_list])
                     sign_language_class = model.predict(data_frame)[0]
                     sign_language_prob = model.predict_proba(data_frame)[0]
-
-                    # Draw "Hand detected" description
-                    # if (time() - last_detected) > 2:
-                    #     debug_image = draw_hand_detected(debug_image, sign_language_class)
 
                     # Calculate boundaries for bounding box
                     bounding_box = calc_bounding_box(debug_image, hand_landmarks)
@@ -140,15 +129,14 @@ def main():
                     debug_image = draw_upper_bound_desc(debug_image, bounding_box, sign_language_class,
                                                         sign_language_prob)
                     debug_image = draw_bounding_box(True, debug_image, bounding_box)
-                    debug_image, prob_percentage = draw_lower_bound_desc(debug_image, bounding_box, sign_language_prob)
+                    debug_image, prob_percentage = draw_lower_bound_desc(debug_image, bounding_box,
+                                                                         sign_language_prob)
 
-                    # Show output in terminal ############
+                    # Show output in terminal
                     print(' ')
                     print('Handedness : ' + detected_hand)
                     print('Sign : ' + sign_language_class)
-                    # print(sign_language_prob)
                     print(prob_percentage)
-                    ######################################
 
                 # Finally if hand is not detected, just bypass to the below code
                 finally:
@@ -163,36 +151,14 @@ def main():
                         mp_hands.HAND_CONNECTIONS,
                         drawing_styles.get_default_hand_landmarks_style(),
                         drawing_styles.get_default_hand_connections_style())
-        else:
-            last_detected = time()
 
         # Output frame
         imshow('Hand (Fingerspelling) Sign Language Recognition', debug_image)
 
-# Main Program #########################################################################################################
+# Main Program : END ===================================================================================================
 
 
-# Calculation functions ################################################################################################
-
-# Calculate bounding box size
-def calc_bounding_box(image, hand_landmarks):
-    image_width, image_height = image.shape[1], image.shape[0]
-    landmark_array = empty((0, 2), int)
-
-    for _, landmark in enumerate(hand_landmarks.landmark):
-        landmark_x = min(int(landmark.x * image_width), image_width - 1)
-        landmark_y = min(int(landmark.y * image_height), image_height - 1)
-
-        landmark_point = [array((landmark_x, landmark_y))]
-
-        landmark_array = append(landmark_array, landmark_point, axis=0)
-
-    x_axis, y_axis, width, height = boundingRect(landmark_array)
-    offset = 25
-
-    return [x_axis - offset, y_axis - offset, x_axis + width + offset, y_axis + height + offset]
-
-
+# Feature extraction functions =========================================================================================
 # Extract & convert default-normalized landmark keys into absolute pixel value
 def calc_landmark_list(image, hand_landmarks):
 
@@ -217,7 +183,7 @@ def calc_landmark_list(image, hand_landmarks):
 
 
 # Convert into wrist-relative point coordinates & normalize keys
-def pre_process_landmark(landmark_list):
+def pre_process_landmark(landmark_list, handedness):
 
     # Receive landmark list from calc_landmark_list function
     temp_landmark_list = deepcopy(landmark_list)
@@ -233,7 +199,10 @@ def pre_process_landmark(landmark_list):
             base_x, base_y = landmark_point[0], landmark_point[1]
 
         # for other landmarks, subtract with set reference key value
-        temp_landmark_list[index][0] = temp_landmark_list[index][0] - base_x
+        if handedness == 'Right':
+            temp_landmark_list[index][0] = temp_landmark_list[index][0] - base_x
+        else:
+            temp_landmark_list[index][0] = (temp_landmark_list[index][0] - base_x) * -1
         temp_landmark_list[index][1] = base_y - temp_landmark_list[index][1]
 
     # Convert to a one-dimensional matrix list
@@ -254,48 +223,7 @@ def pre_process_landmark(landmark_list):
     return temp_landmark_list
 
 
-# Convert into wrist-relative point coordinates & normalize keys for left hand 
-def pre_process_landmark_x_inverted(landmark_list):
-
-    # Receive landmark list from calc_landmark_list function
-    temp_landmark_list = deepcopy(landmark_list)
-
-    # Initialize reference key
-    base_x, base_y = 0, 0
-
-    # For each detected landmark keys in landmark list
-    for index, landmark_point in enumerate(temp_landmark_list):
-
-        # If the first index of the landmark list (wrist) is detected,
-        # set the corresponding landmark keys as 0 for reference key
-        if index == 0:
-            base_x, base_y = landmark_point[0], landmark_point[1]
-
-        # for other landmarks in left hand, subtract with reference key value and multiply it with
-        # negative value. This process makes the left hand can be detected as right hand, so
-        # it can detect sign language without adding a new dataset.
-        temp_landmark_list[index][0] = (temp_landmark_list[index][0] - base_x) * -1
-        temp_landmark_list[index][1] = (base_y - temp_landmark_list[index][1])
-
-    # Convert to a one-dimensional matrix list (remove internal square brackets in arrays)
-    temp_landmark_list = list(
-        chain.from_iterable(temp_landmark_list))
-
-    # Find the max value inside the one-dimensional landmark list
-    max_value = max(list(map(abs, temp_landmark_list)))
-
-    # Normalize the relative keys based from the max value
-    def normalize_(n):
-        return n / max_value
-
-    # Place & replace landmark list key with new normalized value
-    temp_landmark_list = list(map(normalize_, temp_landmark_list))
-
-    return temp_landmark_list
-# Calculation functions ################################################################################################
-
-
-# Decorative functions #################################################################################################
+# Description visualizer functions =====================================================================================
 def draw_student_info(image):
     # Text & text position
     text = "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022"
@@ -360,6 +288,26 @@ def draw_hand_detected(image, sign_language_class):
     return image
 
 
+# Bounding box functions ===============================================================================================
+# Calculate bounding box size
+def calc_bounding_box(image, hand_landmarks):
+    image_width, image_height = image.shape[1], image.shape[0]
+    landmark_array = empty((0, 2), int)
+
+    for _, landmark in enumerate(hand_landmarks.landmark):
+        landmark_x = min(int(landmark.x * image_width), image_width - 1)
+        landmark_y = min(int(landmark.y * image_height), image_height - 1)
+
+        landmark_point = [array((landmark_x, landmark_y))]
+
+        landmark_array = append(landmark_array, landmark_point, axis=0)
+
+    x_axis, y_axis, width, height = boundingRect(landmark_array)
+    offset = 25
+
+    return [x_axis - offset, y_axis - offset, x_axis + width + offset, y_axis + height + offset]
+
+
 def draw_upper_bound_desc(image, bbox, sign_lang_class, sign_lang_prob):
     sign_alphabet = sign_lang_class.split(' ')[0]
 
@@ -367,7 +315,7 @@ def draw_upper_bound_desc(image, bbox, sign_lang_class, sign_lang_prob):
     if (round(sign_lang_prob[argmax(sign_lang_prob)], 2) * 100) > 59:
         text = " ".join(["Sign :", sign_alphabet])
     else:
-        text = "Undetected"
+        text = " "
     top, left, bottom = 0, 1, 2
     offset = 25
 
@@ -426,7 +374,7 @@ def draw_lower_bound_desc(image, bbox, sign_lang_prob):
 
     return image, text
 
-
+# Decorative functions =================================================================================================
 def draw_outlines(image, landmark_point):
     black = (0, 0, 0)
     grey_shade3 = (227, 232, 234)
@@ -496,9 +444,8 @@ def draw_outlines(image, landmark_point):
             circle(image, (landmark[0], landmark[1]), 7, black, 1)
 
     return image
-# Decorative functions #################################################################################################
 
 
-# Run main program
+# Run the program from main function
 if __name__ == '__main__':
     main()
