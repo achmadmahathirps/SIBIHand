@@ -20,11 +20,11 @@ def main():
     # Initializations #########################################
 
     # Initialize camera settings
-    webcam = input('Please select your camera source (0 = built-in webcam / 1 = external camera) : ')# <- (0 = built-in webcam, 1 = external webcam)
-    model_complexity_input = input('Please select the detection quality (0 = low / 1 = high) : ')
+    webcam = input('Please select your camera source (0 = built-in webcam / 1 = external camera) : ')
+    # model_complexity_input = input('Please select the detection quality (0 = low / 1 = high) : ')
 
-    webcam = int(webcam)
-    model_complexity_input = int(model_complexity_input)
+    webcam = int(webcam)# <- (0 = built-in webcam, 1 = external webcam)
+    # model_complexity_input = int(model_complexity_input)
 
     from_capture = VideoCapture(webcam, CAP_DSHOW)
     from_capture.set(CAP_PROP_FRAME_WIDTH, 640)
@@ -37,7 +37,7 @@ def main():
         max_num_hands=1,
         min_detection_confidence=0.5,
         min_tracking_confidence=0.5,
-        model_complexity=model_complexity_input
+        model_complexity=1
     )
     drawing = solutions.drawing_utils
     drawing_styles = solutions.drawing_styles
@@ -188,8 +188,9 @@ def calc_bounding_box(image, hand_landmarks):
         landmark_array = append(landmark_array, landmark_point, axis=0)
 
     x_axis, y_axis, width, height = boundingRect(landmark_array)
+    offset = 25
 
-    return [x_axis, y_axis, x_axis + width, y_axis + height]
+    return [x_axis - offset, y_axis - offset, x_axis + width + offset, y_axis + height + offset]
 
 
 # Extract & convert default-normalized landmark keys into absolute pixel value
