@@ -13,6 +13,8 @@ from cv2 import \
     boundingRect, putText, FONT_HERSHEY_SIMPLEX, LINE_AA, rectangle, line, circle, CAP_DSHOW
 
 import keyboard
+# Also import scikit-learn to do predictions
+# and pyinstaller to make and executable file (if necessary).
 
 # Main program : START =================================================================================================
 def main():
@@ -27,8 +29,8 @@ def main():
     from_capture.set(CAP_PROP_FRAME_HEIGHT, 480)
 
     # Initialize Mediapipe hand model parameters
-    mp_hands = solutions.hands
-    hands = mp_hands.Hands(
+    mediapipe_hands = solutions.hands
+    hands = mediapipe_hands.Hands(
         static_image_mode=False,
         max_num_hands=1,
         min_detection_confidence=0.5,
@@ -113,12 +115,12 @@ def main():
                 #  - At the same time, invert the x values if a left hand is detected.
                 #  - This makes sure that the left hand can be detected as right hand, so we don't have to add another
                 #    sign language alphabet datasets specifically for the left hand.
-                pre_processed_landmark_list = pre_process_landmark(landmark_list, detected_hand)
+                final_processed_landmark_list = pre_process_landmark(landmark_list, detected_hand)
 
                 # If hand detection is confirmed, try :
                 try:
                     # 4. Compare trained dataset from .pkl model with processed landmarks from detected hand
-                    data_frame = DataFrame([pre_processed_landmark_list])
+                    data_frame = DataFrame([final_processed_landmark_list])
                     sign_language_class = model.predict(data_frame)[0]
                     sign_language_prob = model.predict_proba(data_frame)[0]
 
@@ -148,7 +150,7 @@ def main():
                     drawing.draw_landmarks(  # (Mediapipe default visualizer)
                         debug_image,
                         hand_landmarks,
-                        mp_hands.HAND_CONNECTIONS,
+                        mediapipe_hands.HAND_CONNECTIONS,
                         drawing_styles.get_default_hand_landmarks_style(),
                         drawing_styles.get_default_hand_connections_style())
 
@@ -159,6 +161,7 @@ def main():
 
 
 # Feature extraction functions =========================================================================================
+
 # Extract & convert default-normalized landmark keys into absolute pixel value
 def calc_landmark_list(image, hand_landmarks):
 
@@ -203,6 +206,7 @@ def pre_process_landmark(landmark_list, handedness):
             temp_landmark_list[index][0] = temp_landmark_list[index][0] - base_x
         else:
             temp_landmark_list[index][0] = (temp_landmark_list[index][0] - base_x) * -1
+
         temp_landmark_list[index][1] = base_y - temp_landmark_list[index][1]
 
     # Convert to a one-dimensional matrix list
@@ -213,17 +217,18 @@ def pre_process_landmark(landmark_list, handedness):
     max_value = max(list(map(abs, temp_landmark_list)))
 
     # Normalize the relative keys based from the max value
-    def normalize_(n):
+    def normalize_value(n):
         return n / max_value
 
     # Place & replace landmark list key with new normalized value
-    temp_landmark_list = list(map(normalize_, temp_landmark_list))
+    temp_landmark_list = list(map(normalize_value, temp_landmark_list))
 
     # Output : return with the new temp_landmark_list value
     return temp_landmark_list
 
 
 # Description visualizer functions =====================================================================================
+
 def draw_student_info(image):
     # Text & text position
     text = "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022"
@@ -289,6 +294,7 @@ def draw_hand_detected(image, sign_language_class):
 
 
 # Bounding box functions ===============================================================================================
+
 # Calculate bounding box size
 def calc_bounding_box(image, hand_landmarks):
     image_width, image_height = image.shape[1], image.shape[0]
@@ -365,16 +371,17 @@ def draw_lower_bound_desc(image, bbox, sign_lang_prob):
     white_thickness = 1
 
     rectangle(image, (bbox[bottom], bbox[right]), (bbox[top], bbox[right] + offset), black, -1)
-    putText(image, text, (bbox[0] + 5, bbox[3] + 17),
+    putText(image, text, (bbox[top] + 5, bbox[right] + 17),
             FONT_HERSHEY_SIMPLEX,
             font_size, black, outline_thickness, LINE_AA)
-    putText(image, text, (bbox[0] + 5, bbox[3] + 17),
+    putText(image, text, (bbox[top] + 5, bbox[right] + 17),
             FONT_HERSHEY_SIMPLEX,
             font_size, white, white_thickness, LINE_AA)
 
     return image, text
 
 # Decorative functions =================================================================================================
+
 def draw_outlines(image, landmark_point):
     black = (0, 0, 0)
     grey_shade3 = (227, 232, 234)
@@ -445,6 +452,8 @@ def draw_outlines(image, landmark_point):
 
     return image
 
+
+# Executor =============================================================================================================
 
 # Run the program from main function
 if __name__ == '__main__':
