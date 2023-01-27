@@ -45,7 +45,6 @@ def main():
     # Initialize misc. variables
     read_pkl = 'rb'
     previous_time = 0
-    last_detected = time()
     on = False
     key_release = True
 
@@ -177,6 +176,7 @@ def calc_landmark_list(image, hand_landmarks):
         landmark_y = min(int(landmark.y * image_height), image_height - 1)
 
         # ! landmark_z is unused due to a bug from Mediapipe Hands when detecting the depth of the hand
+        # ! and detecting 2 - dimensional datas are much easier to read and explain.
         # landmark_z = landmark.z
 
         # Put the converted landmark keys inside the new landmark list
