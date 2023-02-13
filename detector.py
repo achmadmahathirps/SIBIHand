@@ -16,12 +16,24 @@ import keyboard
 # Also import scikit-learn to do predictions
 # and pyinstaller to make and executable file (if necessary).
 
-# Main program : START =================================================================================================
+# Main program : BEGIN =================================================================================================
 def main():
 
     # Initialize camera inputs
-    webcam = input('Please select your camera source (0 = built-in webcam / 1 = external camera) : ')
+    print('- Below are camera sources that you can use -')
+    print('=============================================')
+    print(' ')
+    print(' [0] Main Camera')
+    print(' [1] Alternative Camera')
+    print(' ')
+    print('=============================================')
+
+    webcam = input('[Please select your camera source] : ')
     webcam = int(webcam)
+
+    print(' ')
+    print('Running . . .')
+    print(' ')
 
     # Initialize camera settings
     from_capture = VideoCapture(webcam, CAP_DSHOW)
@@ -35,7 +47,7 @@ def main():
         max_num_hands=1,
         min_detection_confidence=0.5,
         min_tracking_confidence=0.5,
-        model_complexity=1
+        model_complexity=1,
     )
 
     # Initialize Mediapipe hand visualizer
@@ -51,9 +63,14 @@ def main():
     # Open & load trained .pkl model
     with open('model/svm_trained_classifier_test.pkl', read_pkl) as model_file:
         model = load(model_file)
-
+    
     # While in capturing process
     while True:
+
+        # Program stops if camera source is greater than 1 or lesser than 0
+        if webcam > 1 or webcam < 0:
+            print('(!) Camera source out of bounds. Please select another camera.')
+            break
 
         # Program stops when "ESC" key is pressed
         if waitKey(3) & keyboard.is_pressed('ESC'):
@@ -113,12 +130,12 @@ def main():
                 # 3. Convert the processed landmarks into relative coordinates from wrist point
                 #  - At the same time, invert the x values if a left hand is detected.
                 #  - This makes sure that the left hand can be detected as right hand, so we don't have to add another
-                #    sign language alphabet datasets specifically for the left hand.
+                #    another datasets specifically for the left hand.
                 final_processed_landmark_list = pre_process_landmark(landmark_list, detected_hand)
 
                 # If hand detection is confirmed, try :
                 try:
-                    # 4. Compare trained dataset from .pkl model with processed landmarks from detected hand
+                    # Compare trained dataset from .pkl model with processed landmarks from detected hand
                     data_frame = DataFrame([final_processed_landmark_list])
                     sign_language_class = model.predict(data_frame)[0]
                     sign_language_prob = model.predict_proba(data_frame)[0]
@@ -134,10 +151,10 @@ def main():
                                                                          sign_language_prob)
 
                     # Show output in terminal
-                    print(' ')
-                    print('Handedness : ' + detected_hand)
-                    print('Sign : ' + sign_language_class)
-                    print(prob_percentage)
+                    # print(' ')
+                    # print('Handedness : ' + detected_hand)
+                    # print('Sign : ' + sign_language_class)
+                    # print(prob_percentage)
 
                 # Finally if hand is not detected, just bypass to the below code
                 finally:
@@ -171,12 +188,12 @@ def calc_landmark_list(image, hand_landmarks):
     # Extract & for each landmark keys from detected hand
     for _, landmark in enumerate(hand_landmarks.landmark):
 
-        # Convert pre-normalized landmark keys into absolute pixel value
+        # Convert the default normalized landmark keys into original pixel value
         landmark_x = min(int(landmark.x * image_width), image_width - 1)
         landmark_y = min(int(landmark.y * image_height), image_height - 1)
 
         # ! landmark_z is unused due to a bug from Mediapipe Hands when detecting the depth of the hand
-        # ! and detecting 2 - dimensional datas are much easier to read and explain.
+        # ! and detecting 2 dimensional datas are much easier to read and to explain.
         # landmark_z = landmark.z
 
         # Put the converted landmark keys inside the new landmark list
@@ -227,11 +244,11 @@ def pre_process_landmark(landmark_list, handedness):
     return temp_landmark_list
 
 
-# Description visualizer functions =====================================================================================
+# Description UI functions =====================================================================================
 
 def draw_student_info(image):
     # Text & text position
-    text = "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2022"
+    text = "* Achmad Mahathir P. (187006041) | Universitas Siliwangi 2023"
     x_position, y_position = 10, 470
 
     # Font settings
