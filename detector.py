@@ -19,6 +19,16 @@ import keyboard
 # Main program : BEGIN =================================================================================================
 def main():
 
+    # Welcome UI
+    print(' ')
+    print('░██████╗██╗██████╗░██╗')
+    print('██╔════╝██║██╔══██╗██║')
+    print('╚█████╗░██║██████╦╝██║')
+    print('░╚═══██╗██║██╔══██╗██║')
+    print('██████╔╝██║██████╦╝██║')
+    print('╚═════╝░╚═╝╚═════╝░╚═╝')
+    print(' ')
+
     # Initialize camera inputs
     print('- Below are camera sources that you can use -')
     print('=============================================')
@@ -171,7 +181,7 @@ def main():
                         drawing_styles.get_default_hand_connections_style())
 
         # Output frame
-        imshow('Hand (Fingerspelling) Sign Language Recognition', debug_image)
+        imshow('SIBI Alphabet Detector', debug_image)
 
 # Main Program : END ===================================================================================================
 
